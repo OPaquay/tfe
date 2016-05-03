@@ -1,0 +1,415 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+* {
+    -webkit-tap-highlight-color: rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+}
+
+body {
+    -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
+    -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
+    -webkit-user-select: none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
+    font-size:16px;
+    height:100%;
+    margin:0px;
+    padding:0px;
+    width:100%;
+}
+
+button {
+    -webkit-appearance: none;
+    background-color: transparent;
+    border: none;
+    /*border-radius: none;*/
+}
+
+header {
+    position: fixed;
+    top: 0px;
+    height: 44px;
+    padding: 5px 0px;
+    width: 100%;
+    background-color: #ffffff;
+    z-index: 999;
+    display: none;
+}
+
+p.error {
+    font-size: 14px;
+    color: red;
+    margin: 0px;
+}
+
+.views {
+    margin-top: 54px;
+}
+
+header button {
+    position: absolute;
+}
+
+.artclose {
+    display: none;
+}
+
+.open--menu .artclose {
+    display: block;
+}
+
+.cancel--message--icon {
+    display: none;
+}
+
+.cancel--message .cancel--message--icon {
+    display: block;
+}
+
+button.open--menu {
+    width: 33px;
+    margin: 7px auto;
+    padding: 0px;
+    left: 15px;
+}
+
+button.open--profile {
+    width: 56px;
+    height : 56px;
+    left: 50%;
+    margin-left: -31px;
+    border-radius: 50%;
+    border: 3px solid #47ACFF;
+    top: 10px;
+    background-color: #888;
+}
+
+button.open--public {
+    right: 15px;
+    color: #47acff;
+    text-transform: uppercase;
+    font-size: 16px;
+    line-height: 16px;
+    margin: 14px auto;
+}
+
+button.back--home {
+    overflow: hidden;
+    text-indent: -1000px;
+    height: 30px;
+    width: 30px;
+    background: url('../img/back.png') no-repeat center;
+    background-size: 30px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+}
+
+.cancel--message--icon {
+    overflow: hidden;
+    text-indent: -1000px;
+    height: 30px;
+    width: 30px;
+    background: url('../img/back-blue.png') no-repeat center;
+    background-size: 30px;
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+button.back--home.blue {
+    background: url('../img/back-blue.png') no-repeat center;
+    background-size: 30px;
+}
+
+button {
+    outline: none;
+}
+
+.open--menu .artclose {
+    height: 30px;
+    width: 33px;
+    cursor: pointer;
+    display: block;
+}
+
+.burgx, .burgx2, .burgx3 {
+    margin-top: 3px;
+    background: #47ACFF;
+    width: 33px;
+    height: 4px;
+    position: absolute;
+}
+
+.burgx2 {
+    margin-top: 13px;
+}
+.burgx3 {
+    margin-top: 23px;
+}
+
+#map {
+    width: 100%;
+    height: 250px;
+}
+
+.hide {
+    display: none;
+}
+
+.event {
+    border-radius:4px;
+    -webkit-border-radius:4px;
+    color:#FFFFFF;
+    font-size:12px;
+    margin:0px 30px;
+    padding:2px 0px;
+}
+
+.event.listening {
+    background-color:#333333;
+    display:block;
+}
+
+.event.received {
+    background-color:#4B946A;
+    display:none;
+}
+
+@keyframes fade {
+    from { opacity: 1.0; }
+    50% { opacity: 0.4; }
+    to { opacity: 1.0; }
+}
+ 
+@-webkit-keyframes fade {
+    from { opacity: 1.0; }
+    50% { opacity: 0.4; }
+    to { opacity: 1.0; }
+}
+ 
+.blink {
+    animation:fade 3000ms infinite;
+    -webkit-animation:fade 3000ms infinite;
+}
+
+.activities--container {
+    padding-bottom: 30px;
+}
+
+.activities--list {
+    list-style: none;
+    position: relative;
+    padding: 0px;
+    width: 90%;
+    margin-left: 5%;
+    padding-left: 15px;
+}
+
+.activities--list li {
+    position: relative;
+    font-family: 'Catamaran', sans-serif;
+    font-size: 0.9375em;
+    line-height: 1.4em;
+    font-weight: 300;
+    margin-bottom: 15px;
+}
+.activities--list li:before {
+    content: "";
+    position: absolute;
+    top: 0px;
+    left: -26px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #47ACFF;
+    background-color: #fff;
+}
+.activities--list li.message--detected:before {
+    background-color: #FFE458; 
+}
+
+.activities--list li:last-child {
+    margin-top: -20px;
+    bottom: -20px;
+}
+
+.activity-date {
+    font-size: 0.8em;
+    line-height: 1.2em;
+    margin: 0px;
+}
+
+#message-screen {
+    background-color: #47acff;
+    margin: 0px;
+}
+
+button.add--message {
+    background-color: #47acff;
+    background-image: url('../img/plus.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 30px;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    padding: 0px;
+    position: fixed;
+    right: 15px;
+    bottom: 15px;
+    text-indent: -1000px;
+    overflow: hidden;
+}
+
+p.distance {
+    margin: 0px;
+    color: #fff;
+    font-family: 'Catamaran', sans-serif;
+    font-size: 32px;
+    text-align: center;
+    padding-top: 350px;
+}
+
+.direction {
+    width: 106px;
+    height: 168px;
+    position: absolute;
+    transform-origin: center 119px;
+    background: url('../img/direction.png') no-repeat center;
+    top: 170px;
+    left: 50%;
+    margin-left: -53px;
+}
+
+p.big-text {
+    font-size: 40px;
+    color: #fff;
+    font-family: 'Catamaran', sans-serif;
+    text-align: center;
+    padding-top: 50px;
+    margin: 0px;
+}
+
+#inscription-screen {
+    margin-top: 0px;
+}
+
+form#inscription, form#connexion, form#new-message {
+    width: 90%;
+    margin-left: 5%;
+}
+
+form#inscription {
+    margin-top: 40px;
+}
+
+form#inscription ul, form#connexion ul {
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+form#inscription label, form#connexion label {
+    display: none;
+}
+
+form#inscription input, form#connexion input {
+    width: calc(100% - 20px);
+    background-color: #f2f2f2;
+    border: none;
+    outline: none;
+    padding: 10px;
+    margin-top: 20px;
+    font-family: 'Catamaran', sans-serif;
+    font-size: 16px;
+    color: #333;
+}
+
+form#inscription input[type='submit'], form#connexion input[type='submit']{
+    background-color: #47acff;
+    outline: none;
+    width: 100%;
+    color: #fff;
+    font-size: 18px;
+}
+
+.inscription--button {
+    background-color: #fff;
+    border: 2px solid #47acff;
+    margin-left: 5%;
+    width: 90%;
+    color: #47acff;
+    font-size: 18px;
+    padding: 10px;
+    margin: 20px;
+    font-family: 'Catamaran', sans-serif;
+}
+
+.add-message-view ul {
+    list-style: none;
+    padding: 0px;
+}
+
+.message-step1 label {
+    display: none;
+}
+
+.next-message-step-container, .send-message {
+    width: 100%;
+    position: fixed;
+    bottom: 0px;
+    margin-left: -18px;
+}
+
+.next-message-step-container button, form#new-message input[type='submit'] {
+    background-color: #47acff;
+    color: #fff;
+    width: 100%;
+    font-family: 'Catamaran', sans-serif;
+    font-size: 18px;
+    padding: 10px;
+}
+
+.add-message-view input, .add-message-view textarea {
+    width: calc(100% - 20px);
+    background-color: #f2f2f2;
+    border: none;
+    outline: none;
+    padding: 10px;
+    margin-top: 20px;
+    font-family: 'Catamaran', sans-serif;
+    font-size: 16px;
+    color: #333;
+}
+
+.add-message-view .friends-list label {
+    margin-left: 10px;
+}
+
+.add-message-view .friends-list label:before{
+    content: "";
+    display: block;
+    float: left;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #47acff;
+    border-radius: 50%;
+    clear: both;
+}
+
+.add-message-view .friends-list input[type="checkbox"]{
+    display: none;
+}

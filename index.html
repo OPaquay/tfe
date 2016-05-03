@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html lang="fr">
+    <head>
+        <!--
+        Customize this policy to fit your own app's needs. For more guidance, see:
+            https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
+        Some notes:
+            * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+            * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+            * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+                * Enable inline JS: add 'unsafe-inline' to default-src
+        -->
+        <meta http-equiv="Content-Security-Policy"
+          content="default-src *;
+               script-src 'self' 'unsafe-inline' 'unsafe-eval'
+                           127.0.0.1:*
+                           http://*.google.com
+                           http://*.gstatic.com
+                           http://*.googleapis.com
+                           http://*.firebaseio.com
+                           https://*.google.com
+                           https://*.gstatic.com
+                           https://*.googleapis.com
+                           http://*.googlecode.com
+                           https://*.firebaseio.com
+                           http://oliviapaquay.be
+                           ;
+               style-src  'self' 'unsafe-inline'
+                          127.0.0.1
+                           http://*.google.com
+                           http://*.gstatic.com
+                           http://*.googleapis.com
+                           http://*.firebaseio.com
+                           https://*.google.com
+                           https://*.gstatic.com
+                           https://*.googleapis.com
+                           http://*.googlecode.com
+                           https://*.firebaseio.com
+                           http://oliviapaquay.be">
+        <meta charset="UTF-8">
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <link href='https://fonts.googleapis.com/css?family=Catamaran:400,100,200,300,500,600,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" type="text/css" href="css/index.css">
+        <title>Hello World</title>
+    </head>
+    <body>
+        <div class="app">
+            <header>
+                <button class="open--menu">
+                    <div class="artclose">
+                        <div class="burgx"></div>
+                        <div class="burgx2"></div>
+                        <div class="burgx3"></div>
+                    </div>
+                    <div class="cancel--message--icon">Retour</div>
+                </button>
+                <div class="menu--container hide">
+                    <ul class="menu">
+                        <li class="menu--item"></li>
+                    </ul>
+                </div>
+                <button class="open--profile"></button>
+                <button class="open--public">Public</button>
+            </header>
+            <main>
+               
+                <section class="views" id="connexion-screen">
+                    <form method="post" id="connexion">
+                        <ul>
+                            <li>
+                                <label for="username">Nom d'utilisateur * :</label>
+                                <input type="text" name="username" id="username" value="" placeholder="Nom d'utilisateur">
+                                <p class="error hide" id="username-error"></p>
+                            </li>
+                            <li>
+                                <label for="password">Mot de passe * :</label>
+                                <input type="password" name="password" id="password" placeholder="Mot de passe">
+                                <p class="error hide" id="password-error"></p>
+                                <p class="error hide" id="connexion-error"></p>
+                            </li>
+                            <li>
+                                <input type="submit" value="Connexion" name="connexion">
+                            </li>
+                        </ul>
+                    </form>
+                    <button class="inscription--button">Inscription</button>
+                </section>
+                
+                <section class="views hide" id="inscription-screen">
+                    <button class="back--home blue">Retour</button>
+                    <form method="post" id="inscription">
+                        <ul>
+                            <button type="button" class="add-profile-pict">Photo de profil</button>
+                            <li>
+                                <label for="username">Nom d'utilisateur * :</label>
+                                <input type="text" name="username" id="username" value="" placeholder="Nom d'utilisateur *">
+                                <p class="error hide" id="username-error"></p>
+                            </li>
+                            <li>
+                                <label for="password">Mot de passe * :</label>
+                                <input type="password" name="password" id="password" placeholder="Mot de passe *">
+                                <p class="error hide" id="password-error"></p>
+                            </li>
+                            <li>
+                                <label for="confirm-password">Mot de passe * :</label>
+                                <input type="password" name="confirm-password" id="confirm-password" placeholder="Confirmer mot de passe *">
+                                <p class="error hide" id="confirm-password-error"></p>
+                            </li>
+                            <li>
+                                <input type="submit" value="Inscription" name="inscription">
+                            </li>
+                        </ul>
+                    </form>
+                </section>
+                
+                <section class="views hide" id="intro-screen">
+                    <form method="post" id="profile">
+                        <ul class="steps">
+                            <li id="step1" class="step">
+                                <label for="tutoyer">Et si on se tutoyait ?</label>
+                                <input type="radio" name="tutoyer" value="yes">Oui
+                                <input type="radio" name="tutoyer" value="no">Non
+                                <button type="button" class="next-step">Suivant</button>
+                            </li>
+                            <li id="step2" class= "step hide">
+                                <label for="phone">Entres ton numéro de GSM pour que tes amis puissent te trouver</label>
+                                <input type="text" name="phone"  value="" id="phone">
+                                <input type="submit" value="Suivant" name="profil">
+                                <button type="button" class="skip-step">Passer</button>
+                            </li>
+                            <li id="step3" class="step hide">
+                                <p>Tu as peut-être des amis qui utilisent l'application</p>
+                                <button type="button" class="find-friends">Trouver des amis</button>
+                                <button type="button" class="skip-step">Passer</button>
+                            </li>
+                        </ul>
+                    </form>
+                </section>
+                
+                <section class="views hide" id="friends-screen">
+                    <div class="choose-method">
+                        <button class="by-username">Par pseudo</button>
+                        <button class="by-contact">Via mes contacts</button>
+                        <button class="by-distance">A proximité</button>
+                        <button class="finish-intro">Suivant</button>
+                    </div>
+                    <div class="by-username-screen hide">
+                        <button class="return-friends-screen">Retour</button>
+                        <form method="post" id="search-by-username">
+                            <label for="friend-username">Rechercher un ami :</label>
+                            <input type="text" name="friend-username" id="friend-username">
+                        </form>
+                        <ul class="search-result"></ul>
+                    </div>
+                    <div class="by-contact-screen hide">
+                        
+                    </div>
+                </section>
+                
+                <section class="views hide" id="home-screen">
+                    <div id="map"></div>
+                    <p class="maperror"></p>
+                    <div class="activities--container">
+                        <ul class="activities--list">
+                            
+                        </ul>
+                        <button class="log-out">Se déconnecter</button>
+                    </div>
+                    <div class="add-message-view hide">
+                        <form method="post" id="new-message">
+                            <ul>
+                                <li class="message-step2">
+                                    <label class="hide" for="message-tag">Tag :</label>
+                                    <input type="text" name="message-tag" id="message-tag" placeholder="#tag">
+                                    <p class="error hide" id="tag-error"></p>
+                                </li>
+                                <li class="message-step1">
+                                    <label for="message-content">Message :</label>
+                                    <textarea name="message-content" id="message-content" placeholder="+Txt"></textarea>
+                                    <p class="error hide" id="messagecontent-error"></p>
+                                </li>
+                                <li class="message-step2">
+                                    <ul class="friends-list">
+
+                                    </ul>
+                                    <p class="error hide" id="recipient-error"></p>
+                                </li>
+                                <li class="message-step2">
+                                    <input type="checkbox" name="message-public" id="message-public" value="message-public">
+                                    <label for="message-public">Public</label>
+                                </li>
+                                <li class="message-step1 next-message-step-container">
+                                    <button type="button" class="next-message-step">Suivant</button>
+                                </li>
+                                <li class="message-step2 send-message">
+                                    <input type="submit" value="Envoyer" name="new-message">
+                                </li>
+                            </ul>
+                        </form>
+                    </div>
+                    <button class="add--message">Nouveau message</button>
+                </section>
+                
+                <section class="views hide" id="message-screen">
+                    <button class="back--home">Retour</button>
+                    <p class="big-text">C'est par là !</p>
+                    <div class="direction"></div>
+                    <p class="distance"></p>
+                </section>
+                
+                <section class="views hide" id="acceptfriends-screen">
+                    <p><span class="requester-username"></span> souhaite t'ajouté à sa liste d'amis.</p>
+                    <button class="accept friendrequest-answer">Accepter</button>
+                    <button class="refuse friendrequest-answer">Refuser</button>
+                </section>
+                
+            </main>
+        </div>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+    </body>
+</html>
