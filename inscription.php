@@ -1,50 +1,59 @@
 
-<?php header('Access-Control-Allow-Origin: *'); ?>
-
 <?php
 
-    $host = 'localhost';
-    $dbname = 'dropit';
-    $user = 'root';
-    $password = 'root';
-
-    session_start();
+    include_once('initialization.php');
     include_once('functions.inc.php');
-    include_once('config.inc.php');
-    try{
-        $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8";
-        $connexion = new PDO($dsn, $user, $password);
-    }catch(PDOException $e){
-        echo $e->getMessage();
-        exit;
-    }
+    include_once('passwordLib.php');
 
     $errors = array();
+    $errors['type'] = "errors";
 
     $username = trim(strip_tags($_POST['username']));
     $password = trim(strip_tags($_POST['password']));
     $confirm_password = trim(strip_tags($_POST['confirm-password']));
+    $profile_pict_src = $_POST['profilePictSrc'];
 
     if(strlen($username) < 3) {
         $errors['username'] = 'Votre nom d\'utilisateur doit contenir au moins 3 caractères.';
+    } else if (loginExists($connexion, $username)) {
+        $errors['username'] = 'Ce nom d\' utilisateur est déjà utilisé';
     }
 
-    if(strlen($password) < 7) {
-        $errors['password'] = 'Votre mot de passe doit contenir au moins 7 caractères.';
+    if(strlen($password) < 1) {
+        $errors['password'] = 'Vous devez entrer un mot de passe';
     } else if ($password != $confirm_password) {
-        $errors['password'] = 'Les mots de passes ne correspondent pas.'
+        $errors['confirm-password'] = 'Les mots de passes ne correspondent pas.';
     }
 
-    $sql = 'INSERT INTO users(username, secret) VALUES(:username, :secret)';
+    if (count($errors) < 2) {
+        
+        $sql = 'INSERT INTO users(username, hash, secret, pict_src) VALUES(:username, :hash, :secret, :pict_src)';
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $secret = uniqid();
         $preparedStatement = $connexion->prepare($sql);
         $preparedStatement->bindValue('username', $username);
+        $preparedStatement->bindValue('hash', $hash);
         $preparedStatement->bindValue('secret', $secret);
+        $preparedStatement->bindValue('pict_src', $profile_pict_src);
         $preparedStatement->execute();
+        
+        $sql = 'SELECT * FROM users WHERE username = :username';
+        $query = $connexion->prepare($sql);
+        $query->bindValue(':username', $username);
+        $query->execute();
+        $user = $query->fetch();
+        $user['type'] = "connected";
+        
+        $sql = 'INSERT INTO activities(owner_id, type, date) VALUES(:owner_id, :type, now())';
+        $query = $connexion->prepare($sql);
+        $query->bindValue(':owner_id', $user['id']);
+        $query->bindValue(':type', 'inscription');
+        $query->execute();
+            
+        echo json_encode($user);
     
+    } else {
+        echo json_encode($errors);
+    }
 
 ?>
-
-
-
-
-<h1>Coucou</h1>
