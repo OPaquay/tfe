@@ -11,7 +11,7 @@
     $username = trim(strip_tags($_POST['username']));
     $password = trim(strip_tags($_POST['password']));
     $confirm_password = trim(strip_tags($_POST['confirm-password']));
-    $profile_pict_src = $_POST['profilePictSrc'];
+    $image_URI = $_POST['imageURI'];
 
     if(strlen($username) < 3) {
         $errors['username'] = 'Votre nom d\'utilisateur doit contenir au moins 3 caractères.';
@@ -25,16 +25,15 @@
         $errors['confirm-password'] = 'Les mots de passes ne correspondent pas.';
     }
 
-    if (count($errors) < 2) {
+    if ((count($errors) < 2) && ($image_URI != '')) {
         
-        $sql = 'INSERT INTO users(username, hash, secret, pict_src) VALUES(:username, :hash, :secret, :pict_src)';
+        $sql = 'INSERT INTO users(username, hash, secret) VALUES(:username, :hash, :secret)';
         $hash = password_hash($password, PASSWORD_DEFAULT);
         $secret = uniqid();
         $preparedStatement = $connexion->prepare($sql);
         $preparedStatement->bindValue('username', $username);
         $preparedStatement->bindValue('hash', $hash);
         $preparedStatement->bindValue('secret', $secret);
-        $preparedStatement->bindValue('pict_src', $profile_pict_src);
         $preparedStatement->execute();
         
         $sql = 'SELECT * FROM users WHERE username = :username';

@@ -29,6 +29,18 @@ body {
     margin:0px;
     padding:0px;
     width:100%;
+    font-family: 'Roboto Slab', sans-serif;
+    text-shadow: none;
+}
+
+p {
+    text-shadow: none;
+}
+
+.md-scroll-mask { position: initial;}
+
+.ui-page-theme-a {
+    background-color: transparent;
 }
 
 button {
@@ -38,15 +50,13 @@ button {
     /*border-radius: none;*/
 }
 
-header {
-    position: fixed;
+.header {
     top: 0px;
     height: 44px;
     padding: 5px 0px;
     width: 100%;
     background-color: #ffffff;
     z-index: 999;
-    display: none;
 }
 
 p.error {
@@ -56,10 +66,17 @@ p.error {
 }
 
 .views {
-    margin-top: 54px;
+    overflow: hidden;
+    display: none;
 }
 
-header button {
+#connexion-screen {
+    display: block;
+    margin-top: 0px;
+    padding-top: 25px;
+}
+
+.header button, .header a {
     position: absolute;
 }
 
@@ -67,19 +84,15 @@ header button {
     display: none;
 }
 
-.open--menu .artclose {
+.open--menu .artclose, .close--menu .artclose {
     display: block;
 }
 
-.cancel--message--icon {
+.cancel--message {
     display: none;
 }
 
-.cancel--message .cancel--message--icon {
-    display: block;
-}
-
-button.open--menu {
+a.open--menu {
     width: 33px;
     margin: 7px auto;
     padding: 0px;
@@ -95,18 +108,23 @@ button.open--profile {
     border: 3px solid #47ACFF;
     top: 10px;
     background-color: #888;
+    background-size: 70px;
+    background-position: center center;
 }
 
-button.open--public {
+a.open--public {
+    display: block;
     right: 15px;
-    color: #47acff;
-    text-transform: uppercase;
-    font-size: 16px;
-    line-height: 16px;
-    margin: 14px auto;
+    margin: 7px auto;
+    width: 30px;
+    height: 30px;
+    text-indent: -999px;
+    overflow: hidden;
+    background: url('../img/public.png') no-repeat center;
+    background-size: 30px;
 }
 
-button.back--home {
+.back--button {
     overflow: hidden;
     text-indent: -1000px;
     height: 30px;
@@ -129,7 +147,7 @@ button.back--home {
     margin-left: 10px;
 }
 
-button.back--home.blue {
+.back--button.blue {
     background: url('../img/back-blue.png') no-repeat center;
     background-size: 30px;
 }
@@ -138,7 +156,7 @@ button {
     outline: none;
 }
 
-.open--menu .artclose {
+.open--menu .artclose, .close--menu .artclose {
     height: 30px;
     width: 33px;
     cursor: pointer;
@@ -146,18 +164,28 @@ button {
 }
 
 .burgx, .burgx2, .burgx3 {
-    margin-top: 3px;
+    margin-top: 5px;
     background: #47ACFF;
     width: 33px;
-    height: 4px;
+    height: 2px;
     position: absolute;
 }
 
 .burgx2 {
-    margin-top: 13px;
+    margin-top: 15px;
 }
 .burgx3 {
-    margin-top: 23px;
+    margin-top: 25px;
+}
+    
+.close--menu .burgx {
+    margin-top: 13px;
+    transform: rotate(-45deg);
+}
+
+.close--menu .burgx2, .close--menu .burgx3 {
+    margin-top: 13px;
+    transform: rotate(45deg);
 }
 
 #map {
@@ -165,7 +193,7 @@ button {
     height: 250px;
 }
 
-.hide {
+.hide, .ui-mobile label.hide {
     display: none;
 }
 
@@ -207,24 +235,28 @@ button {
 
 .activities--container {
     padding-bottom: 30px;
+    background-color: #fff;
+    padding-top: 20px;
 }
 
 .activities--list {
     list-style: none;
     position: relative;
     padding: 0px;
-    width: 90%;
-    margin-left: 5%;
-    padding-left: 15px;
+    width: calc(84% - 18px);
+    margin-left: 8%;
+    padding-left: 16px;
+    margin-top: 0px;
 }
 
 .activities--list li {
     position: relative;
-    font-family: 'Catamaran', sans-serif;
+    font-family: 'Roboto Slab', sans-serif;
     font-size: 0.9375em;
     line-height: 1.4em;
     font-weight: 300;
     margin-bottom: 15px;
+    white-space: nowrap;
 }
 .activities--list li:before {
     content: "";
@@ -277,7 +309,7 @@ button.add--message {
 p.distance {
     margin: 0px;
     color: #fff;
-    font-family: 'Catamaran', sans-serif;
+    font-family: 'Roboto Slab', sans-serif;
     font-size: 32px;
     text-align: center;
     padding-top: 350px;
@@ -297,7 +329,7 @@ p.distance {
 p.big-text {
     font-size: 40px;
     color: #fff;
-    font-family: 'Catamaran', sans-serif;
+    font-family: 'Roboto Slab', sans-serif;
     text-align: center;
     padding-top: 50px;
     margin: 0px;
@@ -307,7 +339,7 @@ p.big-text {
     margin-top: 0px;
 }
 
-form#inscription, form#connexion, form#new-message {
+form#inscription, form#connexion, form#new-message, form#profile {
     width: 90%;
     margin-left: 5%;
 }
@@ -316,7 +348,7 @@ form#inscription {
     margin-top: 40px;
 }
 
-form#inscription ul, form#connexion ul {
+form#inscription ul, form#connexion ul, form#profile ul {
     list-style: none;
     margin: 0px;
     padding: 0px;
@@ -326,36 +358,53 @@ form#inscription label, form#connexion label {
     display: none;
 }
 
-form#inscription input, form#connexion input {
+input[type="text"], input[type="password"] {
     width: calc(100% - 20px);
     background-color: #f2f2f2;
     border: none;
     outline: none;
     padding: 10px;
     margin-top: 20px;
-    font-family: 'Catamaran', sans-serif;
+    font-family: 'Roboto Slab', sans-serif;
     font-size: 16px;
     color: #333;
 }
 
-form#inscription input[type='submit'], form#connexion input[type='submit']{
+input.button, button.button, a.button {
     background-color: #47acff;
     outline: none;
+    border: none;
     width: 100%;
     color: #fff;
+    padding: 10px;
     font-size: 18px;
+    margin-top: 20px;
+    font-family: 'Comfortaa', sans-serif;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    font-weight: 300;
+    text-shadow: none;
 }
 
-.inscription--button {
-    background-color: #fff;
+a.button:visited {
+    color: #fff;
+}
+
+input.border-button, button.border-button, a.border-button {
     border: 2px solid #47acff;
-    margin-left: 5%;
-    width: 90%;
+    background-color: #fff;
     color: #47acff;
-    font-size: 18px;
-    padding: 10px;
+}
+
+a.border-button:visited {
+    color: #47acff;
+}
+
+#connexion-screen a {
+    width: calc(90% - 22px);
     margin: 20px;
-    font-family: 'Catamaran', sans-serif;
+    margin-left: 5%;
 }
 
 .add-message-view ul {
@@ -378,9 +427,13 @@ form#inscription input[type='submit'], form#connexion input[type='submit']{
     background-color: #47acff;
     color: #fff;
     width: 100%;
-    font-family: 'Catamaran', sans-serif;
+    font-family: 'Roboto Slab', sans-serif;
     font-size: 18px;
     padding: 10px;
+}
+
+form#new-message input[type='submit'] {
+    margin-top: 0px;
 }
 
 .add-message-view input, .add-message-view textarea {
@@ -390,13 +443,18 @@ form#inscription input[type='submit'], form#connexion input[type='submit']{
     outline: none;
     padding: 10px;
     margin-top: 20px;
-    font-family: 'Catamaran', sans-serif;
+    font-family: 'Roboto Slab', sans-serif;
     font-size: 16px;
     color: #333;
 }
 
-.add-message-view .friends-list label {
-    margin-left: 10px;
+.add-message-view textarea {
+    min-height: 90px;
+}
+
+.friends-list li {
+    margin-top: 15px;
+    padding: 5px 0px;
 }
 
 .add-message-view .friends-list label:before{
@@ -408,8 +466,429 @@ form#inscription input[type='submit'], form#connexion input[type='submit']{
     border: 2px solid #47acff;
     border-radius: 50%;
     clear: both;
+    margin-right: 5px;
+}
+
+.add-message-view .friends-list input[type="checkbox"]:checked + label:before {
+    background-color: #ffe458;
 }
 
 .add-message-view .friends-list input[type="checkbox"]{
     display: none;
 }
+
+#intro-screen ul {
+    list-style: none;
+    padding: 0px;
+}
+
+#intro-screen {
+    padding-top: 50px;
+}
+
+#intro-screen p {
+    text-align: center;
+    font-family: 'Roboto Slab', sans-serif;
+    font-size: 18px;
+}
+
+#intro-screen p.error {
+    font-size: 14px;
+    color: red;
+    margin: 0px;
+    text-align: left;
+}
+
+form#profile {
+    margin-top: 100px;
+}
+
+button.find-friends, .choose-method button {
+    background-color: #47acff;
+    color: #fff;
+    font-family: 'Comfortaa', sans-serif;
+    width: 90%;
+    margin-left: 5%;
+    font-size: 18px;
+    padding: 10px;
+}
+
+.choose-method button {
+    margin-bottom: 15px;
+}
+
+.choose-method button.finish-intro {
+    background-color: #fff;
+    border: 2px solid #47acff;
+    color: #47acff;
+}
+
+.choose-method {
+    margin-top: 100px;
+}
+
+button.skip-step {
+    text-align: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.choose-public {
+    overflow: hidden;
+    position: fixed;
+    bottom: 60px;
+    margin-top: 15px;
+    left: 50%;
+    margin-left: -41px;
+}
+
+.choose-public input {
+    display: none;
+}
+
+.choose-public input:checked + label:before {
+    background: url('../img/checked.png') no-repeat center;
+    background-size: 14px;
+    background-color: #47acff;
+}
+
+.choose-public label {
+    padding-top: 2px;
+}
+
+.choose-public label:before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #fff;
+    border: 2px solid #47acff;
+    margin-right: 10px;
+    margin-top: -2px;
+}
+
+.choose-public label:before, .choose-public label {
+    float: left;
+}
+
+#acceptfriends-screen {
+    margin-top: 100px;
+}
+
+#acceptfriends-screen p {
+    text-align: center;
+    font-family: 'Roboto Slab', sans-serif;
+    font-size: 18px;
+    max-width: 80%;
+    margin: 0 auto;
+    margin-top: 90px;
+}
+
+button.accept, button.refuse {
+    background-color: #47acff;
+    color: #fff;
+    font-family: 'Comfortaa', sans-serif;
+    width: 90%;
+    margin-left: 5%;
+    font-size: 18px;
+    padding: 10px;
+    margin-top: 20px;
+}
+
+.foundedmessage {
+    margin: 0 auto;
+    margin-top: 130px;
+    width: calc(90% - 30px);
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.foundedmessage .tag, .foundedmessage .message-info {
+    font-family: 'Comfortaa', sans-serif;
+    font-size: 14px;
+}
+
+.menu ul li {
+    margin-top: 20px;
+}
+
+button.add-profile-pict {
+    display: block;
+    width: 76px;
+    height : 76px;
+    margin: 0 auto;
+    border-radius: 50%;
+    border: 3px solid #47ACFF;
+    top: 10px;
+    background-color: #888;
+    background-size: 140px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    overflow: hidden;
+    text-indent: -999px;
+}
+
+div#map {
+    position: relative;
+}
+
+button.lock-location {
+    width: 38px;
+    height: 38px;
+    text-indent: -999px;
+    background: url('../img/unlocked.png') no-repeat center center;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+button.lock-location.locked {
+    background-image: url('../img/lock.png');
+}
+
+.activities--list button.delete-activity {
+    position: absolute;
+    right: -120px;
+    top: 5px;
+    background-color: #fff;
+    padding-left: 15px;
+    color: #FF4E4E;
+}
+
+button.like-publicmessage {
+    width: 20px;
+    height: 20px;
+    background: url('../img/heart.png') no-repeat center;
+    background-size: 20px;
+    overflow: hidden;
+    text-indent: -999px;
+}
+
+#public-screen {
+    background-color: #fff;
+}
+
+.public-messages {
+    list-style: none;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.public-messages li {
+    clear: both;
+    background-color: #f2f2f2;
+    overflow: hidden;
+    margin-bottom: 20px;
+    padding: 5px 10px;
+    width: calc(100% - 20px);
+}
+
+.public-messages p {
+    font-family: 'Comfortaa', sans-serif;
+}
+
+p.publicmessage-tag {
+    float: left;
+    font-size: 14px;
+}
+
+p.publicmessage-time {
+    float: right;
+    font-style: italic;
+    font-size: 14px;
+}
+
+p.publicmessage-content {
+    padding-top: 5px;
+    clear: both;
+    font-family: 'Roboto Slab', sans-serif;
+}
+
+p.publicmessage-sender {
+    float: left;
+    font-size: 14px;
+}
+
+p.publicmessage-distance, button.like-publicmessage {
+    float: right;
+    font-size: 14px;
+}
+
+p.publicmessage-distance {
+    margin-right: 10px;
+}
+
+.publicmessage-sender, .publicmessage-distance, .like-publicmessage {
+    line-height: 20px;
+    margin-top: 0px;
+}
+
+button.password-forgot {
+    text-align: center;
+    margin: 0 auto;
+    width: 100%;
+    font-family: 'Roboto Slab', sans-serif;
+    font-size: 14px;
+}
+
+#connexion-screen .logo {
+    width: 90px;
+    height: 134px;
+    background: url('../img/logo.png') no-repeat center;
+    background-size: contain;
+    margin: 0 auto;
+}
+
+.allow-mobile {
+    margin: 0 auto;
+    text-align: center;
+    width: calc(37% + 60px);
+    margin-bottom: 10px;
+}
+
+.allow-mobile label {
+    float: left;
+    margin-right: 30px;
+}
+
+.allow-mobile label:before{
+    content: "";
+    display: block;
+    float: left;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #47acff;
+    border-radius: 50%;
+    clear: both;
+    margin-right: 10px;
+}
+
+.allow-mobile input[type="radio"]:checked + label:before {
+    background-color: #ffe458;
+}
+
+.allow-mobile input[type="radio"]{
+    display: none;
+}
+
+#phone-auto-error {
+    clear: both;
+}
+
+.suggest-friend {
+    width: 90%;
+    margin: 0 auto;
+    opacity: 0.5;
+    display: none;
+    margin-top: 60px;
+    font-size: 15px;
+}
+
+.suggest-friend a {
+    width: calc(100% - 20px);
+    color: #fff;
+}
+
+.suggest-friend p {
+    text-align: center;
+}
+
+.menu {
+    margin-top: 20px;
+}
+
+.menu ul {
+    list-style: none;
+    padding: 20px;
+}
+
+.menu ul li {
+    background-color: #f2f2f2;
+    margin-bottom: 10px;
+}
+
+.menu ul li a {
+    text-decoration: none;
+    color: #000;
+    padding: 10px;
+    display: block;
+    font-weight: 300;
+    width: calc(100% - 20px);
+}
+
+.menu ul li a:focus, .menu ul li a:active, .menu ul li a:visited {
+    color: #000;
+}
+
+.myfriends-list {
+    margin-top: 50px;
+    list-style: none;
+}
+
+form#search-by-username {
+    width: 90%;
+    margin: 0 auto;
+    margin-top: 50px;
+}
+
+form#search-by-username input {
+    margin-top: 10px;
+}
+
+.by-username-screen .search-result, .contact-result {
+    list-style: none;
+    padding: 0px 20px;
+    width: calc(100% - 40px);
+}
+
+.contact-result {
+    width: calc(90% - 40px);
+    margin: 0 auto;
+    margin-top: 50px;
+}
+
+.by-username-screen .search-result li, .contact-result li {
+    overflow: hidden;
+    line-height: 30px;
+    vertical-align: middle;
+    margin-bottom: 15px;
+}
+
+.by-username-screen .search-result .add-friend, .contact-result .add-friend {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: url('../img/plus.png') no-repeat center;
+    background-color: #47acff;
+    background-size: 15px;
+    float: right;
+    text-align: center;
+}
+
+.by-username-screen .search-result .add-friend span, .contact-result .add-friend span {
+    display: none;
+}
+
+.by-username-screen .search-result .add-friend.sended, .contact-result .add-friend.sended {
+    background: none;
+    background-color: #47acff;
+}
+
+.by-username-screen .search-result .add-friend.already-friend, .contact-result .add-friend.already-friend {
+    background: url('../img/checked.png') no-repeat center;
+    background-size: 15px;
+    background-color: #47acff;
+}
+
+.by-username-screen .search-result .add-friend.sended span, .contact-result .add-friend.sended span {
+    text-indent: 0px;
+    display: block;
+    color: #fff;
+    line-height: 10px;
+    margin-top: -8px;
+    font-weight: 500;
+    vertical-align: middle;
+}
+

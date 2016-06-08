@@ -30,6 +30,9 @@
         -->
         <meta http-equiv="Content-Security-Policy"
           content="default-src *;
+               img-src 'self' data: blob: filesystem:
+                       http://oliviapaquay.be
+                       ;
                script-src 'self' 'unsafe-inline' 'unsafe-eval'
                            127.0.0.1:*
                            http://*.google.com
@@ -60,143 +63,149 @@
         <meta name="msapplication-tap-highlight" content="no">
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
         <link href='https://fonts.googleapis.com/css?family=Catamaran:400,100,200,300,500,600,700' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Comfortaa:400,300,700' rel='stylesheet' type='text/css'>
+	    <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css" />
         <link rel="stylesheet" type="text/css" href="css/index.css">
         <title>Hello World</title>
     </head>
     <body>
         <div class="app">
-            <header>
-                <button class="open--menu">
-                    <div class="artclose">
-                        <div class="burgx"></div>
-                        <div class="burgx2"></div>
-                        <div class="burgx3"></div>
-                    </div>
-                    <div class="cancel--message--icon">Retour</div>
-                </button>
-                <div class="menu--container hide">
-                    <ul class="menu">
-                        <li class="menu--item"></li>
-                    </ul>
-                </div>
-                <button class="open--profile"></button>
-                <button class="open--public">Public</button>
-            </header>
             <main>
                
-                <section class="views" id="connexion-screen">
+                <section data-role="page" class="views" id="connexion-screen">
+                    <div class="logo"></div>
                     <form method="post" id="connexion">
                         <ul>
                             <li>
                                 <label for="username">Nom d'utilisateur * :</label>
-                                <input type="text" name="username" id="username" value="" placeholder="Nom d'utilisateur">
+                                <input type="text" name="username" id="username" value="" placeholder="Nom d'utilisateur" data-role="none">
                                 <p class="error hide" id="username-error"></p>
                             </li>
                             <li>
                                 <label for="password">Mot de passe * :</label>
-                                <input type="password" name="password" id="password" placeholder="Mot de passe">
+                                <input type="password" name="password" id="password" placeholder="Mot de passe" data-role="none">
                                 <p class="error hide" id="password-error"></p>
                                 <p class="error hide" id="connexion-error"></p>
                             </li>
                             <li>
-                                <input type="submit" value="Connexion" name="connexion">
+                                <input class="button" type="submit" value="Connexion" name="connexion" data-role="none">
                             </li>
                         </ul>
                     </form>
-                    <button class="inscription--button">Inscription</button>
+                    <a href="#inscription-screen" data-transition="slideup" class="border-button button">Inscription</a>
+                    <button class="password-forgot" data-role="none">Mot de passe oublié ?</button>
                 </section>
                 
-                <section class="views hide" id="inscription-screen">
-                    <button class="back--home blue">Retour</button>
+                <section data-role="page" class="views" id="inscription-screen">
+                    <a class="back--button blue" href="#connexion-screen" data-transition="slidedown">Retour</a>
                     <form method="post" id="inscription">
                         <ul>
-                            <button type="button" class="add-profile-pict">Photo de profil</button>
+                            <button type="button" class="add-profile-pict" data-role="none">Photo de profil</button>
+                            <p class="error hide" id="profilepict-error"></p>
                             <li>
                                 <label for="username">Nom d'utilisateur * :</label>
-                                <input type="text" name="username" id="username" value="" placeholder="Nom d'utilisateur *">
+                                <input type="text" name="username" id="username" value="" placeholder="Nom d'utilisateur *" data-role="none">
                                 <p class="error hide" id="username-error"></p>
                             </li>
                             <li>
                                 <label for="password">Mot de passe * :</label>
-                                <input type="password" name="password" id="password" placeholder="Mot de passe *">
+                                <input type="password" name="password" id="password" placeholder="Mot de passe *" data-role="none">
                                 <p class="error hide" id="password-error"></p>
                             </li>
                             <li>
                                 <label for="confirm-password">Mot de passe * :</label>
-                                <input type="password" name="confirm-password" id="confirm-password" placeholder="Confirmer mot de passe *">
+                                <input type="password" name="confirm-password" id="confirm-password" placeholder="Confirmer mot de passe *" data-role="none">
                                 <p class="error hide" id="confirm-password-error"></p>
                             </li>
                             <li>
-                                <input type="submit" value="Inscription" name="inscription">
+                                <input class="button" type="submit" value="Inscription" name="inscription" data-role="none">
                             </li>
                         </ul>
                     </form>
                 </section>
                 
-                <section class="views hide" id="intro-screen">
+                <section data-role="page" class="views" id="intro-screen">
                     <form method="post" id="profile">
-                        <ul class="steps">
-                            <li id="step1" class="step">
-                                <label for="tutoyer">Et si on se tutoyait ?</label>
-                                <input type="radio" name="tutoyer" value="yes">Oui
-                                <input type="radio" name="tutoyer" value="no">Non
-                                <button type="button" class="next-step">Suivant</button>
-                            </li>
-                            <li id="step2" class= "step hide">
-                                <label for="phone">Entres ton numéro de GSM pour que tes amis puissent te trouver</label>
-                                <input type="text" name="phone"  value="" id="phone">
-                                <input type="submit" value="Suivant" name="profil">
-                                <button type="button" class="skip-step">Passer</button>
-                            </li>
-                            <li id="step3" class="step hide">
-                                <p>Tu as peut-être des amis qui utilisent l'application</p>
-                                <button type="button" class="find-friends">Trouver des amis</button>
-                                <button type="button" class="skip-step">Passer</button>
-                            </li>
-                        </ul>
+                        <p class="hide">Ton numéro de GSM servira uniquement à récupérer ton mot de passe en cas d'oubli à moins que tu autorises tes amis à te retrouver par celui-ci.</p>
+                                
+                        <input type="text" name="phone"  value="" id="phone" data-role="none" placeholder="Numéro de GSM">
+                        <p class="error hide" id="phone-error"></p>
+                                
+                        <p>Autoriser mes amis à me trouver par mon numéro de GSM :</p>
+                        <div class="allow-mobile">
+                            <input data-role="none" type="radio" name="phone-auto" value="true" id="true">
+                            <label data-role="none" for="true">Oui</label>
+                            <input data-role="none" type="radio" name="phone-auto" value="false" id="false">
+                            <label data-role="none" for="false">Non</label>
+                        </div>
+                        <p class="error hide" id="phone-auto-error"></p>
+                                
+                        <input class="button" type="submit" value="Suivant" name="profil" data-role="none">
                     </form>
                 </section>
                 
-                <section class="views hide" id="friends-screen">
+                <section data-role="page" class="views" id="friends-screen">
                     <div class="choose-method">
-                        <button class="by-username">Par pseudo</button>
-                        <button class="by-contact">Via mes contacts</button>
-                        <button class="by-distance">A proximité</button>
-                        <button class="finish-intro">Suivant</button>
+                        <a class="back--button blue" href="#menu-screen" data-transition="fade">Retour</a>
+                        <button class="by-username" data-role="none">Par pseudo</button>
+                        <button class="by-contact" data-role="none">Via mes contacts</button>
+                        <button class="by-distance" data-role="none">A proximité</button>
                     </div>
                     <div class="by-username-screen hide">
-                        <button class="return-friends-screen">Retour</button>
+                        <a class="back--button blue" href="#friends-screen" data-transition="fade">Retour</a>
                         <form method="post" id="search-by-username">
-                            <label for="friend-username">Rechercher un ami :</label>
-                            <input type="text" name="friend-username" id="friend-username">
+                            <label for="friend-username">Chercher des amis :</label>
+                            <input type="text" name="friend-username" id="friend-username" data-role="none" placeholder="Pseudo">
                         </form>
                         <ul class="search-result"></ul>
                     </div>
                     <div class="by-contact-screen hide">
-                        
+                        <a class="back--button blue" href="#friends-screen" data-transition="fade">Retour</a>
+                        <ul class="contact-result">
+                            
+                        </ul>
                     </div>
                 </section>
                 
-                <section class="views hide" id="home-screen">
-                    <div id="map"></div>
-                    <p class="maperror"></p>
+                <section data-role="page" class="views" id="home-screen">
+                    <div class="header">
+                        <a href="#menu-screen" class="open--menu" data-transition="slide" data-direction="reverse">
+                            <div class="artclose">
+                                <div class="burgx"></div>
+                                <div class="burgx2"></div>
+                                <div class="burgx3"></div>
+                            </div>
+                        </a>
+                        <button data-role="none" class="cancel--message hide">
+                            <div class="cancel--message--icon">Retour</div>
+                        </button>
+                        <button class="open--profile" data-role="none"></button>
+                        <a href="#public-screen" class="open--public" data-transition="slide"></a>
+                    </div>
+                    <div id="map">
+                        <button class="lock-location hide" data-role="none">Verouillez ma position</button>
+                    </div>
                     <div class="activities--container">
                         <ul class="activities--list">
                             
                         </ul>
-                        <button class="log-out">Se déconnecter</button>
+                        <div class="suggest-friend">
+                            <p>Tu as peut-être des amis qui utilisent Drop It</p>
+                            <a href="#friends-screen" class="button" data-transition="slide" data-direction="reverse">Trouver mes amis</a>
+                        </div>
                     </div>
                     <div class="add-message-view hide">
                         <form method="post" id="new-message">
                             <ul>
                                 <li class="message-step2">
                                     <label class="hide" for="message-tag">Tag :</label>
-                                    <input type="text" name="message-tag" id="message-tag" placeholder="#tag">
+                                    <input type="text" name="message-tag" id="message-tag" placeholder="#sujet" data-role="none">
                                     <p class="error hide" id="tag-error"></p>
                                 </li>
                                 <li class="message-step1">
                                     <label for="message-content">Message :</label>
-                                    <textarea name="message-content" id="message-content" placeholder="+Txt"></textarea>
+                                    <textarea name="message-content" id="message-content" placeholder="+Txt" data-role="none"></textarea>
                                     <p class="error hide" id="messagecontent-error"></p>
                                 </li>
                                 <li class="message-step2">
@@ -205,39 +214,75 @@
                                     </ul>
                                     <p class="error hide" id="recipient-error"></p>
                                 </li>
-                                <li class="message-step2">
-                                    <input type="checkbox" name="message-public" id="message-public" value="message-public">
+                                <li class="message-step2 choose-public">
+                                    <input data-role="none" type="checkbox" name="message-public" id="message-public" value="message-public">
                                     <label for="message-public">Public</label>
                                 </li>
                                 <li class="message-step1 next-message-step-container">
-                                    <button type="button" class="next-message-step">Suivant</button>
+                                    <button type="button" class="next-message-step" data-role="none">Suivant</button>
                                 </li>
                                 <li class="message-step2 send-message">
-                                    <input type="submit" value="Envoyer" name="new-message">
+                                    <input data-role="none" type="submit" value="Envoyer" name="new-message">
                                 </li>
                             </ul>
                         </form>
                     </div>
-                    <button class="add--message">Nouveau message</button>
+                    <button class="add--message" data-role="none">Nouveau message</button>
                 </section>
                 
-                <section class="views hide" id="message-screen">
-                    <button class="back--home">Retour</button>
-                    <p class="big-text">C'est par là !</p>
-                    <div class="direction"></div>
-                    <p class="distance"></p>
+                <section data-role="page" class="views" id="public-screen">
+                    <a class="back--button blue" href="#home-screen" data-transition="fade" data-direction="reverse">Retour</a>
+                    <ul class="public-messages">
+                        
+                    </ul>
                 </section>
                 
-                <section class="views hide" id="acceptfriends-screen">
-                    <p><span class="requester-username"></span> souhaite t'ajouté à sa liste d'amis.</p>
+                <section data-role="page" class="views" id="menu-screen">
+                    <a class="back--button blue" href="#home-screen" data-transition="slide">Retour</a>
+                    <nav class="menu">
+                        <ul>
+                            <li><a href="#myfriends-screen" class="my-friends" data-transition="fade">Mes amis</a></li>
+                            <li><a href="#friends-screen" class="add-friends" data-transition="fade">Ajouter des amis</a></li>
+                            <li><a href="#connexion-screen" class="log-out" data-transition="fade">Se déconnecter</a></li>
+                        </ul>
+                    </nav>
+                </section>
+                
+                <section data-role="page" class="views" id="myfriends-screen">
+                    <a class="back--button blue" href="#menu-screen" data-transition="slide">Retour</a>
+                    <ul class="myfriends-list">
+                        
+                    </ul>
+                </section>
+                
+                <section data-role="page" class="views" id="message-screen">
+                    <a class="back--button" href="#home-screen" data-transition="fade">Retour</a>
+                    <div class="search-message">
+                        <p class="big-text">C'est par là !</p>
+                        <div class="direction"></div>
+                        <p class="distance"></p>
+                    </div>
+                </section>
+                
+                <section data-role="page" class="views" id="acceptfriends-screen">
+                    <a class="back--button blue" href="#menu-screen" data-transition="slide">Retour</a>
+                    <p><span class="requester-username"></span> souhaite t'ajouter à sa liste d'amis.</p>
                     <button class="accept friendrequest-answer">Accepter</button>
-                    <button class="refuse friendrequest-answer">Refuser</button>
+                    <button class="refuse friendrequest-answer" data-role="none">Refuser</button>
                 </section>
                 
             </main>
         </div>
         <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
+        <script>
+            $(document).on("mobileinit",function() {
+                $.mobile.autoInitializePage = false;
+            });        
+        </script>
+        <script src="js/jquery.mobile-1.4.5.min.js"></script>
+        <script src="js/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="js/fastclick.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
     </body>
 </html>

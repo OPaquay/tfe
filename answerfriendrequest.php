@@ -13,9 +13,11 @@
 
     if($request_accepted == 'accepted') {
     
-        $sql = 'UPDATE friendship SET accepted = :accepted WHERE (from_id = :requester_id AND to_id = :user_id)';
+        $sql = 'UPDATE friendship SET accepted = :accepted WHERE from_id = :requester_id AND to_id = :user_id';
         $query = $connexion->prepare($sql);
         $query->bindValue('accepted', 1);
+        $query->bindValue('requester_id', $requester_id);
+        $query->bindValue('user_id', $user_id);
         $query->execute();
         
         $sql = 'UPDATE activities SET type = :type, date = now() WHERE id = :id';

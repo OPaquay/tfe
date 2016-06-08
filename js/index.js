@@ -2,11 +2,12 @@ var user_save = localStorage.getItem("user");
 var user = JSON.parse(user_save);
 var userProfilePictSrc = '';
 
-var marker;
-var messageMarker;
+var userMarker = '';
+var messageMarker = [];
 var messagesMarker = [];
+var mapIsLoaded = false;
 var map;
-    function initMap() {
+    /*function initMap() {
          map = new google.maps.Map(document.getElementById('map'), {
             center: {lat: -34.397, lng: 150.644},
             zoom: 15,
@@ -26,7 +27,7 @@ var map;
             map.panTo(marker.getPosition());
         });
 
-    }
+    }*/
 
 $(document).ready(function(){
 
@@ -48,8 +49,28 @@ $(document).ready(function(){
         // function, we must explicitly call 'app.receivedEvent(...);'
         onDeviceReady: function() {
             app.receivedEvent('deviceready');
+            FastClick.attach(document.body);
             pictureSource = navigator.camera.PictureSourceType;
             destinationType = navigator.camera.DestinationType;
+            
+            map = plugin.google.maps.Map.getMap(document.getElementById('map'), {
+                'camera': {
+                    'latLng': {lat: -34.397, lng: 150.644},
+                    'zoom': 15,
+                    'tilt': 70
+                },
+                'controls': {
+                    'compass': false
+                }, 
+                'gestures': {
+                    'scroll': false,
+                    'tilt': false,
+                    'rotate': false,
+                    'zoom': true
+                }
+            });
+            
+            map.addEventListener(plugin.google.maps.event.MAP_READY, onMapReady);
         },
         
         // Update DOM on a Received Event
@@ -66,6 +87,21 @@ $(document).ready(function(){
     
     };
     
+    function onMapReady() {
+        if(userMarker != ''){
+            userMarker.remove();
+        }
+        mapIsLoaded = true;
+        map.addMarker({
+            'position': {lat: -34.397, lng: 150.644},
+        }, function(marker) {
+            marker.setIcon({
+                'url': 'www/img/point.png'
+            });
+            userMarker = marker;
+        });
+    }
+    
     app.initialize();
     
     var latlng;
@@ -74,9 +110,10 @@ $(document).ready(function(){
         lng : '',
         heading : ''
     };
+    var lockedPosition = '';
     
     function convertRadians(e){
-        return (e*Math.PI/180);
+        return (e* (Math.PI/180));
     }
     
     function round(number,X) {
@@ -105,27 +142,43 @@ $(document).ready(function(){
     }
     
     function addMarker() {
+        if(messageMarker != ''){
+            for(var j=0; i<messageMarker.length; i++) {
+                messageMarker[0].remove();
+            }
+        }
         for(var i = 0; i < messagesMarker.length; i++){
             data = messagesMarker[i];
-            messageLatLng = new google.maps.LatLng( data.lat, data.lng);
-            messageMarker = new google.maps.Marker({
-                position: messageLatLng,
-                icon: {url: 'img/yellow_point.png', anchor: new google.maps.Point(11, 11)},
-                map: map
+            messageLatLng = new plugin.google.maps.LatLng( data.lat, data.lng);
+            map.addMarker({
+                'position': messageLatLng,
+                'markerId': data.id,
+                'icon': {
+                    'url': 'www/img/yellow_point.png'
+                }
+            }, function(marker) {
+                marker.addEventListener(plugin.google.maps.event.MARKER_CLICK, function() {
+                    markerId = marker.get("markerId");
+                    $('.message--detected#' + markerId).click();
+                });
+                messageMarker.push(marker);
             });
         }
     }
     
     function messageDetected(message) {
         message.detected = true;
-        messageDetectedPosition = {
+        var messageDetectedPosition = {
+            id : message.id,
             lat : message.message_lat,
             lng : message.message_lng
         };
         messagesMarker.push(messageDetectedPosition);
-        addMarker();
         $('.activities--list').prepend('<li class="message--detected" id="' + message.id + '">Un message a été détecté dans ta zone !</li>');
-        $('#' + message.id).append('<p class="activity-date">À l\'instant</p>');
+        $('.activities--list #' + message.id).append('<p class="activity-date">À l\'instant</p>');
+        if(user.activities.length != 0) {
+            $('.activities--list').css('border-left', '2px solid #47ACFF');
+        }
         
     }
     
@@ -144,28 +197,32 @@ $(document).ready(function(){
                 distanceFromMessage = calculDistance(userPosition, messagePosition);
                 messageIsDetected = user.waitingMessages[i].detected;
                 
-                if (distanceFromMessage <= 1.10 && messageIsDetected != true) {
+                if (distanceFromMessage <= 0.5 && messageIsDetected != true) {
                     user.waitingMessages[i].distance = distanceFromMessage;
                     messageDetected(user.waitingMessages[i]);
                     
-                } else if (distanceFromMessage > 1.10 && messageIsDetected == true) {
+                } else if (distanceFromMessage > 0.5 && messageIsDetected == true) {
                     user.waitingMessages[i].detected = false;
                     $('#' + user.waitingMessages[i].id).remove();
                 }
             }
         }
+        if(mapIsLoaded == true) {
+            addMarker();
+        }
     }
     
     function getPosition(position) {
-        latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        if(mapIsLoaded == true) {
+            latlng = new plugin.google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+            userMarker.setPosition(latlng);
+        
+            //Centrer la map sur latlng
+            map.setCenter(latlng);
+        }
         currentPosition.lat = position.coords.latitude; 
         currentPosition.lng = position.coords.longitude;
         currentPosition.heading = position.coords.heading;
-        
-        marker.setPosition(latlng);
-        
-        //Centrer la map sur latlng
-        map.panTo(latlng);
         
         checkWaitingMessages(currentPosition);
     }
@@ -186,7 +243,6 @@ $(document).ready(function(){
                 info += "Erreur inconnue";
                 break;
         }
-        $('.maperror').append(info);
     }
     
     var watchPosition = function(){
@@ -227,7 +283,7 @@ $(document).ready(function(){
     
     var loadActivitiesParticipants = function() {
         for (var i = 0; i < user.activities.length; i++) {
-            if (user.activities[i].type == "friendrequest" || user.activities[i].type == "friendrequestaccepted" || user.activities[i].type == "messageFounded" || user.activities[i].type == "messageFoundedBy" || user.activities[i].type == "friendrequestacceptedby") {
+            if (user.activities[i].type == "friendrequest" || user.activities[i].type == "friendrequestaccepted" || user.activities[i].type == "messageFounded" || user.activities[i].type == "messageFoundedBy" || user.activities[i].type == "friendrequestacceptedby" || user.activities[i].type == "messagedropped") {
                 $.ajax({
                     type: 'POST',
                     async: false,
@@ -287,29 +343,15 @@ $(document).ready(function(){
         });
     }
     
-    var displayActivities = function() {
-        if (user.activities.length > 1){
-            $('.activities--list').css('border-left', '2px solid #47ACFF');
-        }
-        $('.activities--list li').remove();
-        for(var i = 0; i < user.activities.length; i++) {
-            var activity = user.activities[i];
-            var activityText;
-            var activityId = activity.id;
-            var activityClass;
-            
-            var sqlActivityTime = activity.date.split(/[- :]/);
-            var activityTime = new Date(sqlActivityTime[0], sqlActivityTime[1]-1, sqlActivityTime[2], sqlActivityTime[3], sqlActivityTime[4], sqlActivityTime[5]);
-            var currentTime = new Date;
-            
-            activityTime = activityTime.getTime();
-            currentTime = currentTime.getTime();
-            var timePassed = currentTime - activityTime;
-            var secondPassed = (timePassed / 1000).toFixed(0);
-            var minutePassed = (secondPassed / 60).toFixed(0);
-            var hourPassed = (minutePassed / 60).toFixed(0);
-            var daysPassed = (hourPassed / 24).toFixed(0);
-            var weekPassed = (daysPassed / 7).toFixed(0);
+    function calculTimePassed(initialTime, now){
+            var timePassed = now - initialTime;
+            var secondPassed = Math.floor((timePassed / 1000));
+            var minutePassed = Math.floor((secondPassed / 60));
+            var hourPassed = Math.floor((minutePassed / 60));
+            var daysPassed = Math.floor((hourPassed / 24));
+            var weekPassed = Math.floor((daysPassed / 7));
+            var monthsPassed = Math.floor((daysPassed / 30.41));
+            var yearPassed = Math.floor((daysPassed / 365));
             var textActivityTime;
             
             if(secondPassed < 60) {
@@ -332,8 +374,52 @@ $(document).ready(function(){
                 } else {
                     textActivityTime = 'Il y\' à ' + daysPassed + ' jours';
                 }
-            } 
+            } else if(monthsPassed < 1) {
+                if(weekPassed == 1) {
+                    textActivityTime = 'Il y\'à 1 semaine';
+                } else {
+                    textActivityTime = 'Il y\' à ' + weekPassed + ' semaines';
+                }
+            } else if(daysPassed < 365) {
+                if(monthsPassed == 1) {
+                    textActivityTime = 'Il y\'à 1 an';
+                } else {
+                    textActivityTime = 'Il y\'à ' + monthsPassed + ' mois';
+                }
+            } else {
+                if(yearPassed == 1) {
+                    textActivityTime = 'Il y\'à 1 an';
+                } else {
+                    textActivityTime = 'Il y\'à '+ yearPassed + ' ans';
+                }
+            }
+        
+            return textActivityTime;
+    }
+    
+    var displayActivities = function() {
+        if (user.activities.length > 1){
+            $('.activities--list').css('border-left', '2px solid #47ACFF');
+        } else {
+            $('.activities--list').css('border-left', 'none');
+            if(user.friendList.length == 0){
+                $('.suggest-friend').show();
+            }
+        }
+        $('.activities--list li').remove();
+        for(var i = 0; i < user.activities.length; i++) {
+            var activity = user.activities[i];
+            var activityText;
+            var activityId = activity.id;
+            var activityClass;
             
+            var sqlActivityTime = activity.date.split(/[- :]/);
+            var activityTime = new Date(sqlActivityTime[0], sqlActivityTime[1]-1, sqlActivityTime[2], sqlActivityTime[3], sqlActivityTime[4], sqlActivityTime[5]);
+            var currentTime = new Date;
+            
+            activityTime = activityTime.getTime();
+            currentTime = currentTime.getTime();
+            var textActivityTime = calculTimePassed(activityTime, currentTime);
             
             switch (activity.type) {
                 
@@ -349,10 +435,12 @@ $(document).ready(function(){
                 case 'friendrequestaccepted':
                     var activityParticipantUsername = activity.participants[0].participant_username;
                     activityText = 'Tu es désormais ami avec ' + activityParticipantUsername;
+                    activityClass = "requestaccepted-activity";
                     break;
                 case 'friendrequestacceptedby':
                     var activityParticipantUsername = activity.participants[0].participant_username;
                     activityText = activityParticipantUsername + ' a accepté ta demande d\'amis';
+                    activityClass = "requestacceptedby-activity";
                     break;
                 case 'messageFounded':
                     activityText = 'Tu as trouvé un message de ' + activity.participants[0].participant_username;
@@ -360,7 +448,7 @@ $(document).ready(function(){
                     break;
                 case 'messageFoundedBy':
                     if (activity.participants.length == 1) {
-                        activityText = activity.participants[0].username + ' a trouvé ton message';
+                        activityText = activity.participants[0].participant_username + ' a trouvé ton message';
                     } else if (activity.participants.length > 1) {
                         var activityParticipants = activity.participants[0].participant_username;
                         for (var j = 1; j < activity.participants.length; j++) {
@@ -373,12 +461,55 @@ $(document).ready(function(){
                         activityText = activityParticipants + ' ont trouvés ton message !';
                         activityClass = "messagefoundedby-activity";
                     }
+                    break;
+                case 'messagedropped':
+                    if (activity.participants.length == 1) {
+                        activityText = 'Message déposé pour ' + activity.participants[0].participant_username;
+                    } else if (activity.participants.length > 1) {
+                        var activityParticipants = activity.participants[0].participant_username;
+                        for (var j = 1; j < activity.participants.length; j++) {
+                            if(j != (activity.participants.length - 1)) {
+                                activityParticipants += (', ' + activity.participants[j].participant_username);
+                            } else {
+                                activityParticipants += (' et ' + activity.participants[j].participant_username);
+                            }
+                        }
+                        activityText = 'Message déposé pour ' + activityParticipants;
+                        activityClass = "messagedropped-activity";
+                    } else if(activity.participants.length == 0){
+                        activityText = 'Message public déposé';
+                    }
+                    break;
             }
             
             $('.activities--list').append('<li class="' + activityClass + '" id="' + activityId + '">' + activityText + '</li>');
-            $('#' + activityId).append('<p class="activity-date">' + textActivityTime + '</p>');
+            $('.activities--list #' + activityId).append('<p class="activity-date">' + textActivityTime + '</p>');
+            $('.activities--list #' + activityId).append('<button class="delete-activity" data-role="none">Supprimer</button>');
         }
     };
+    
+    $('.app').on('click', '.delete-activity', function(){
+        var activityId = $(this).parent().attr('id');
+        $.ajax({
+            type: 'POST',
+            data: 'activityId=' + activityId,
+            url : 'http://oliviapaquay.be/dropit/deleteactivity.php',
+            success: function(data) {
+                for(var i=0; i<user.activities.length; i++) {
+                    if(user.activities[i].id == activityId) {
+                        user.activities.splice(i, 1);
+                    }
+                }
+            },
+            error: function() {
+                alert('There was an error');
+            }
+        });
+        $('.activities--list li#' + activityId).remove();
+        if (user.activities.length < 1){
+            $('.activities--list').css('border-left', 'none');
+        }
+    });
     
     $(document).ajaxComplete(function(event,request, settings) {
         if(settings.url == "http://oliviapaquay.be/dropit/loadfriends.php") {
@@ -392,24 +523,41 @@ $(document).ready(function(){
         user_save = JSON.stringify(user);
         localStorage.setItem("user", user_save);
         displayActivities();
+        watchPosition();
         console.log(user);
     });
     
     var windowHeight = $(window).height();
+    $('.views').css('height', windowHeight + 'px');
+    var previousView = 'home-screen';
+    var watchHeadingId;
+    var repeat;
+    
     var selectView = function(viewId){
+        $('p.error').hide();
+        previousView = $('.views:visible').attr('id');
+        if(previousView == 'message-screen') {
+            navigator.compass.clearWatch(watchHeadingID);
+            clearTimeout(repeat);
+        }
         $('header').show();
-        $('.views').removeClass('hide');
-        $('.views').addClass('hide');
-        $('#' + viewId + '-screen').removeClass('hide');
+        $('header .back--button').addClass('open--menu').removeClass('back--button');
+        if(viewId == 'inscription') {
+            $('#inscription-screen').show();
+            $('#connexion-screen').hide('slide', {direction: 'up'});
+        } else {
+            $('.views').hide()
+            $('#' + viewId + '-screen').show();
+        }
         if(viewId == 'home') {
             $('header').show();
             $('button.add--message').show();
-            if(!(typeof google === 'object' && typeof google.maps === 'object')) {
+            $('.open--profile').css('background-image', 'url("http://oliviapaquay.be/dropit/upload/' + user.profilePictSrc + '")');
+            /*if(!(typeof google === 'object' && typeof google.maps === 'object')) {
                 $.getScript('https://maps.googleapis.com/maps/api/js?key=AIzaSyBsca-E6pREkZVSqmb8eHLzCMom3r0lKhA&libraries=geometry&callback=initMap');
-            }
+            }*/
             loadFriends(user.userId);
             loadWaitingMessages(user.userId);
-            watchPosition();
             $('#home-screen').css('height', (windowHeight - 54) + 'px');
         } else if(viewId == 'message') {
             $('#message-screen').css('height', (windowHeight) + 'px');
@@ -418,6 +566,9 @@ $(document).ready(function(){
             $('#inscription-screen').css('height', (windowHeight) + 'px');
             $('header').hide();
         } else if(viewId == 'connexion') {
+            $('#connexion-screen').css('height', (windowHeight) + 'px');
+            $('header').hide();
+        } else if(viewId == 'intro') {
             $('header').hide();
         }
     }
@@ -442,36 +593,88 @@ $(document).ready(function(){
     }
     
     if(user != null && user.connected == "connected") {
-        selectView('home');
+        window.location.hash = 'home-screen';
+        $.mobile.initializePage();
+        $('.open--profile').css('background-image', 'url("http://oliviapaquay.be/dropit/upload/' + user.profilePictSrc + '")');
         loadFriends(user.userId);
         loadWaitingMessages(user.userId);
         loadSendedMessages();
+    } else {
+        window.location.hash = 'connexion-screen';
+        $.mobile.initializePage();
     }
     
-    $('.inscription--button').click(function(){
+    /*$('.inscription--button').click(function(){
         selectView('inscription');
         $('header').hide();
-    })
+    });*/
     
-    $('#inscription').submit(function() {
+    var imageURI = '';
+    
+    function clearCache() {
+        navigator.camera.cleanup();
+    }
+    
+    var retries = 0;
+    
+    function transferPhoto(URI){
+        var win = function (r) {
+            clearCache();
+            retries = 0;
+            user.profilePictSrc = user.userId + '-profilePict.jpg'
+        }
+
+        var fail = function (error) {
+            if (retries == 0) {
+                retries ++
+                setTimeout(function() {
+                    transferPhoto(imageURI)
+                }, 1000)
+            } else {
+                retries = 0;
+                clearCache();
+                alert('Ups. Something wrong happens!');
+            }
+        }
+
+        var options = new FileUploadOptions();
+        options.fileKey = "file";
+        options.fileName = URI.substr(URI.lastIndexOf('/') + 1);
+        options.mimeType = "image/jpeg";
+        
+        options.params = {};
+        options.params.userId = user.userId;
+        
+        options.chunkedMode = false;
+        
+        var ft = new FileTransfer();
+        ft.upload(URI, encodeURI("http://oliviapaquay.be/dropit/upload.php"), win, fail, options);
+    }
+    
+    
+    $('#inscription').submit(function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         
         var inscriptionData = $(this).serialize();
         
         $.ajax({
             type: 'POST',
-            data: inscriptionData + '&profilePictSrc=' + userProfilePictSrc,
+            data: inscriptionData + '&imageURI=' + imageURI,
             url: 'http://oliviapaquay.be/dropit/inscription.php',
             success: function(data) {
                 var connexionAnswer = JSON.parse(data);
-                if(connexionAnswer.type == "errors"){
+                if(connexionAnswer.type == "errors" || imageURI == ''){
                     var errors = connexionAnswer;
+                    if (imageURI == '') {
+                        errors.profilepict = 'Veuillez sélectionnez une photo de profil';
+                    }
                     showErrors(errors, "inscription");
                 } else if(connexionAnswer.type == "connected") {
                     var userData = connexionAnswer;
                     user = {
                         userId : userData.id,
                         username : userData.username,
-                        profilePictSrc : userData.pict_src,
                         connected : "connected",
                         friendList: [],
                         activities : [],
@@ -481,11 +684,13 @@ $(document).ready(function(){
                     };
                     user_save = JSON.stringify(user);
                     localStorage.setItem("user", user_save);
+                    transferPhoto(imageURI);
                     loadFriends(user.userId);
                     loadWaitingMessages(user.userId);
                     loadSendedMessages();
-                    selectView('intro');
+                    $.mobile.changePage( "#intro-screen", { transition: "slide", changeHash: false });
                 }
+                
             },
             error: function(){
                 alert('There was an error');
@@ -528,7 +733,9 @@ $(document).ready(function(){
                     loadFriends(user.userId);
                     loadWaitingMessages(user.userId);
                     loadSendedMessages();
-                    selectView('home');
+                    //selectView('home');
+                    $('.open--profile').css('background-image', 'url("http://oliviapaquay.be/dropit/upload/' + user.profilePictSrc + '")');
+                    $.mobile.changePage( "#home-screen", { transition: "fade", changeHash: false });
                 }
             },
             error: function(){
@@ -537,11 +744,10 @@ $(document).ready(function(){
         });
     });
     
-    $('.log-out').click(function() {
+    $('.app').on('click', '.log-out', function() {
         user.connected = "not connected";
         var user_save = JSON.stringify(user);
         localStorage.setItem("user", user_save);
-        window.location.reload();
     });
     
     var displayNextStep = function(nextStep) {
@@ -564,10 +770,6 @@ $(document).ready(function(){
         
     });
     
-    $('.find-friends').click(function(){
-        selectView('friends');
-    });
-    
     $('#profile').submit(function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -587,7 +789,7 @@ $(document).ready(function(){
                     user.tutoyer = userData.tutoyer;
                     user_save = JSON.stringify(user);
                     localStorage.setItem("user", user_save);
-                    displayNextStep(currentStep + 1);
+                    $.mobile.changePage( "#home-screen", { transition: "fade", changeHash: false });
                 }
             },
             error: function(){
@@ -596,11 +798,75 @@ $(document).ready(function(){
         });
     });
     
+    function checkContacts() {
+        $('.contact-result li').remove();
+        var userContacts = [];
+        var contactSignedin = [];
+        
+        function onSuccess(contacts) {
+            console.log(contacts);
+            
+            for(var i=0; i<contacts.length; i++) {
+                var contact = {
+                    name: contacts[i].displayName,
+                    phoneNumber: contacts[i].phoneNumbers
+                };
+                userContacts.push(contact);
+            }
+            userContacts = JSON.stringify(userContacts);
+            $.ajax({
+                type: 'POST',
+                data: 'user_contacts=' + encodeURIComponent(userContacts),
+                url: 'http://oliviapaquay.be/dropit/searchcontact.php',
+                success: function(data) {
+                    contactSignedin = JSON.parse(data);
+                    for(var j=0; j<contactSignedin.length; j++) {
+                        if(contactSignedin[j].id != user.userId) {
+                            $('ul.contact-result').append('<li id="' + contactSignedin[j].id + '">' + contactSignedin[j].contactName + '<span>' + contactSignedin[j].username + '</span><button class="add-friend"><span>...</span></button></li>');
+                            for(var k = 0; k < user.friendList.length; k++){
+                                if(contactSignedin[j].id == user.friendList[k].id) {
+                                    $('.contact-result #' + contactSignedin[j].id + ' .add-friend').addClass('already-friend');
+                                }
+                            }
+                        }
+                    }
+                    if(contactSignedin.length == 0){
+                        $('ul.contact-result').append('<li>Malheureusement, aucun de tes contacts n\'a été trouvé dans notre base de donnée.</li>');
+                    }
+                },
+                error: function(){
+                    alert('There was an error');
+                }
+            });
+        }
+        
+        function onError(contactError) {
+            alert('Error');
+        }
+        
+        var options = new ContactFindOptions();
+        options.filter = "";
+        options.multiple = true;
+        options.hasPhoneNumber = true;
+        filter = ["displayName", "name"];
+        navigator.contacts.find(filter, onSuccess, onError, options);
+    }
+    
     $('#friends-screen .choose-method button').click(function() {
         var method = $(this).attr('class');
         $('#friends-screen > div').removeClass('hide').addClass('hide');
         $('.' + method + '-screen').removeClass('hide');
+        if (method == 'by-contact') {
+            checkContacts();
+        }
     });
+    
+    $('.app').on('click', '#friends-screen .back--button', function(event){
+        if($(event.target).attr('href') == '#friends-screen') {
+            $('#friends-screen > div').removeClass('hide').addClass('hide');
+            $('.choose-method').removeClass('hide');
+        }
+    })
     
     $('input#friend-username').on('input', function() {
         $('.search-result li').remove();
@@ -614,10 +880,14 @@ $(document).ready(function(){
                     var searchResult = JSON.parse(data);
                     for(var i = 0; i < searchResult.length; i++){
                         if(searchResult[i].id != user.userId) {
-                            $('.search-result').append('<li id="' + searchResult[i].id + '">' + searchResult[i].username + '</li>');
+                            $('.search-result').append('<li id="' + searchResult[i].id + '">' + searchResult[i].username + '<button class="add-friend"><span>...</span></button></li>');
+                            for(var j = 0; j < user.friendList.length; j++){
+                                if(searchResult[i].id == user.friendList[j].id) {
+                                    $('.search-result #' + searchResult[i].id + ' .add-friend').addClass('already-friend');
+                                }
+                            }
                         }
                     };
-                    $('.search-result li').append('<button class="add-friend">+</button>');
                 },
                 error: function(){
                     alert('There was an error');
@@ -629,20 +899,26 @@ $(document).ready(function(){
     
     $('.app').on('click', 'button.add-friend', function(){
         var friendToAdd = $(this).parent().attr('id');
-        $.ajax({
-            type: 'POST',
-            data: 'friendToAdd=' + friendToAdd + '&userId=' + user.userId + '&username=' + user.username,
-            url: 'http://oliviapaquay.be/dropit/addfriend.php',
-            success: function(data) {
-                console.log(data);
-            },
-            error: function(){
-                alert('There was an error');
-            }
-        });
+        if(!$(this).hasClass('sended') && !$(this).hasClass('already-friend')) {
+            $('.search-result li#' + friendToAdd + ' .add-friend').addClass('sended');
+            $.ajax({
+                type: 'POST',
+                data: 'friendToAdd=' + friendToAdd + '&userId=' + user.userId + '&username=' + user.username,
+                url: 'http://oliviapaquay.be/dropit/addfriend.php',
+                success: function(data) {
+
+                },
+                error: function(){
+                    alert('There was an error');
+                }
+            });
+        } else if($(this).hasClass('sended')) {
+            $('.search-result li#' + friendToAdd + ' .add-friend').removeClass('sended');
+        }
     });
     
     function messageFounded(message) {
+        $('.search-message').hide();
         user.foundedMessages.push(message);
         user.waitingMessages = user.waitingMessages.filter(function (el) {
             return el.id !== message.id;
@@ -654,12 +930,20 @@ $(document).ready(function(){
         var messageFoundedActivityId = parseInt(message.foundedActivityId, 10);
         var tag = message.tag;
         var date = message.message_date;
+        var sqlMessageTime = date.split(/[- :]/);
+        var messageTime = new Date(sqlMessageTime[0], sqlMessageTime[1]-1, sqlMessageTime[2], sqlMessageTime[3], sqlMessageTime[4], sqlMessageTime[5]);
+        var currentTime = new Date;
+            
+        messageTime = messageTime.getTime();
+        currentTime = currentTime.getTime();
+        var textMessageTime = calculTimePassed(messageTime, currentTime);
+        
         for (var i = 0; i < user.friendList.length; i++){
             if (user.friendList[i].id == messageFrom) {
                 messageFromUsername = user.friendList[i].username;
             }
         }
-        $('#message-screen').append('<p>' + tag + ' Message de ' + messageFromUsername + ' envoyé le ' + date + ' : ' + messageContent + '</p>');
+        $('#message-screen').append('<div class="foundedmessage"><p class="tag">' + tag + '</p><p class="message-content">' + messageContent + '</p><p class="message-info">Déposé par ' + messageFromUsername + ' ' +  textMessageTime.toLowerCase() + '</p></div>');
         
         $.ajax({
             type: 'POST',
@@ -676,29 +960,57 @@ $(document).ready(function(){
     
     var lastHeading = 0;
     
+    function calculHeading(origin, destination) {
+        var pi = 3.1415;
+        var originLat = convertRadians(origin.lat);
+        var originLng = convertRadians(origin.lng);
+        var destinationLat = convertRadians(destination.lat);
+        var destinationLng = convertRadians(destination.lng);
+        
+        var dLng = destinationLng - originLng;
+        
+        var dPhi = Math.log(Math.tan(destinationLat/2.0 + Math.PI/4.0)/Math.tan(originLat/2.0 + Math.PI/4.0));
+        if(Math.abs(dLng) > Math.PI) {
+            if(dLng > 0.0) {
+                dLng = -(2.0 * Math.PI - dLng);
+            } else {
+                dLng = (2.0 * Math.PI + dLng);
+            }
+        }
+        
+        var brng = (((Math.atan2(dLng, dPhi)) * (180/Math.PI)) + 360.0) % 360.0;
+        
+        /*var y = Math.sin(destinationLng - originLng) * Math.cos(destinationLat);
+        var x = Math.cos(origin.lat) * Math.sin(destination.lat) - Math.sin(origin.lat) * Math.cos(destinationLat) * Math.cos(destinationLng - originLng);
+        var brng = Math.atan2(y, x) * (180/pi);*/
+        return brng;
+    }
+    
     $('.app').on('click', '.message--detected', function() {
-        selectView('message');
+        $.mobile.changePage( "#message-screen", { transition: "fade", changeHash: false });
+        $('#message-screen .foundedmessage').remove();
+        $('.search-message').show();
         var messageId = $(this).attr('id');
         var searchedMessage;
         var messageLatLng;
         var userLatLng = latlng;
         var userHeading;
         var userToMessageHeading;
-        var heading;
+        var bearing;
         
         for (var i = 0; i < user.waitingMessages.length; i++) {
             if(user.waitingMessages[i].id == messageId) {
                 searchedMessage = user.waitingMessages[i];
-                messageLatLng = new google.maps.LatLng(searchedMessage.message_lat, searchedMessage.message_lng);
+                messageLatLng = new plugin.google.maps.LatLng(searchedMessage.message_lat, searchedMessage.message_lng);
             }
         }
         
         function onSuccess(heading) {
             userHeading = heading.magneticHeading;
-            userToMessageHeading = google.maps.geometry.spherical.computeHeading(userLatLng, messageLatLng);
-            heading = userToMessageHeading - userHeading;
+            userToMessageHeading = calculHeading(userLatLng, messageLatLng);
+            bearing = userToMessageHeading - userHeading;
             
-            $({deg: lastHeading}).animate({deg: heading}, {
+            $({deg: lastHeading}).animate({deg: bearing}, {
                 duration: 500,
                 step: function(now){
                     $('div.direction').css({
@@ -706,7 +1018,7 @@ $(document).ready(function(){
                     });
                 }
             });
-            lastHeading = heading;
+            lastHeading = bearing;
         };
 
         function onError(compassError) {
@@ -717,7 +1029,7 @@ $(document).ready(function(){
             frequency: 1500
         };
 
-        var watchID = navigator.compass.watchHeading(onSuccess, onError, options);
+        watchHeadingID = navigator.compass.watchHeading(onSuccess, onError, options);
         
         function displayDistance() {
             if(searchedMessage.distance < 0.05) {
@@ -725,7 +1037,7 @@ $(document).ready(function(){
                 clearTimeout(repeat);
             } else {
                 $('.distance').text((searchedMessage.distance * 1000).toFixed(0) + ' m');
-                var repeat = setTimeout(displayDistance, 1000);
+                repeat = setTimeout(displayDistance, 1000);
             }
         }
         
@@ -737,17 +1049,15 @@ $(document).ready(function(){
         $('#friends-screen .choose-method').removeClass('hide');
     });
     
-    $('.finish-intro').click(function() {
-        selectView('home');
-    });
-    
     $('.add--message').click(function() {
         $('#map').css('height', '100px');
-        google.maps.event.trigger(map, 'resize');
-        $('.open--menu').addClass('cancel--message').removeClass('open--menu');
+        $('.lock-location').show();
+        $('.open--menu').hide();
+        $('.cancel--message').show();
         $('button.add--message').hide();
         $('.friends-list li').remove();
         $('.activities--container').addClass('hide');
+        $('.activities--list li').remove();
         $('.add-message-view').removeClass('hide');
         $('.message-step2').hide();
         $('.message-step1').show();
@@ -755,15 +1065,6 @@ $(document).ready(function(){
             var friendsListElement = '<li><input type="checkbox" name="message-recipient[]" id="' + user.friendList[i].id + '" value="' + user.friendList[i].id + '"><label for="' + user.friendList[i].id + '">' + user.friendList[i].username + '</label></li>';
             $('.friends-list').append(friendsListElement);
         }
-    });
-    
-    $('.add-message-view .back-home').click(function() {
-        $('.cancel--message').addClass('open--menu').removeClass('cancel--message');
-        $('.add-message-view').addClass('hide');
-        $('button.add--message').show();
-        $('.activities--container').removeClass('hide');
-        $('#map').css('height', '300px');
-        google.maps.event.trigger(map, 'resize');
     });
     
     $('.app').on('click', '.next-message-step', function() {
@@ -782,7 +1083,12 @@ $(document).ready(function(){
         e.preventDefault();
         e.stopPropagation();
         
-        var messageLocation = currentPosition;
+        if(lockedPosition == '') {
+            var messageLocation = currentPosition;
+        } else {
+            var messageLocation = lockedPosition;
+        }
+        var messageForm = $(this);
         var messageData = $(this).serialize();
         $.ajax({
             type: 'POST',
@@ -791,9 +1097,27 @@ $(document).ready(function(){
             success: function(data) {
                 var messageAnswer = JSON.parse(data);
                 if(messageAnswer.type == 'sendedMessage') {
+                    $('p.error').removeClass('hide');
                     user.sendedMessages.push(messageAnswer);
-                    alert('Message envoyé !');
-                    $('.back-home').click();
+                    $('.add-message-view').addClass('hide');
+                    $('.activities--container').removeClass('hide');
+                    $('.cancel--message').hide();
+                    $('.open--menu').show();
+                    
+                    displayActivities();
+                    $('.activities--list').prepend('<li>Message public déposé</li>');
+                    for(var i = 0; i < user.waitingMessages.length; i++) {
+                        if(user.waitingMessages[i].detected) {
+                            $('.activities--list').prepend('<li class="message--detected" id="' + user.waitingMessages[i].id + '">Un message a été détecté dans ta zone !</li>');
+                            $('.activities--list #' + user.waitingMessages[i].id).append('<p class="activity-date">À l\'instant</p>');
+                            if(user.activities.length != 0) {
+                                $('.activities--list').css('border-left', '2px solid #47ACFF');
+                            }
+                        }
+                    }
+                    $('#map').css('height', '250px');
+                    $('.lock-location').hide();
+                    $('button.add--message').show();
                 } else {
                     var errors = messageAnswer;
                     showErrors(errors, 'home');
@@ -811,7 +1135,7 @@ $(document).ready(function(){
     
     $('.app').on('click', 'li.friendrequest-activity', function() {
         friendrequestActivityId = parseInt($(this).attr('id'), 10);
-        selectView('acceptfriends');
+        $.mobile.changePage( "#acceptfriends-screen", { transition: "fade", changeHash: false });
         for(var i=0; i < user.activities.length; i++) {
             if(user.activities[i].id == friendrequestActivityId) {
                 requesterId = user.activities[i].participants[0].participant_id;
@@ -844,45 +1168,16 @@ $(document).ready(function(){
         });
     });
     
-    function clearCache() {
-        navigator.camera.cleanup();
-    }
-    
-    var retries = 0;
-    
     function onCapturePhoto(fileURI) {
-        var win = function (r) {
-            clearCache();
-            retries = 0;
-            alert('Done!');
-        }
-
-        var fail = function (error) {
-            if (retries == 0) {
-                retries ++
-                setTimeout(function() {
-                    onCapturePhoto(fileURI)
-                }, 1000)
-            } else {
-                retries = 0;
-                clearCache();
-                alert('Ups. Something wrong happens!');
-            }
-        }
-
-        var options = new FileUploadOptions();
-        options.fileKey = "file";
-        options.fileName = fileURI.substr(fileURI.lastIndexOf('/') + 1);
-        options.mimeType = "image/jpeg";
-        options.params = {}; 
-        
-        var ft = new FileTransfer();
-        ft.upload(fileURI, encodeURI("http://oliviapaquay.be/dropit/upload"), win, fail, options);
+        imageURI = fileURI;
+        $('p#profilepict-error').hide();
+        $('.add-profile-pict').css('background-image', 'url("' + fileURI + '")');
     }
     
     $('.add-profile-pict').click(function() {
-        navigator.camera.getPicture(onCapturePhoto, onFail, { quality: 10,
-            destinationType: destinationType.FILE_URI
+        navigator.camera.getPicture(onCapturePhoto, onFail, { quality: 20,
+            destinationType: destinationType.FILE_URI, allowEdit: true,
+        correctOrientation: true
         });
 
         function onFail(message) {
@@ -890,22 +1185,172 @@ $(document).ready(function(){
         }
     });
     
-    $('.app').on('click', '.back--home', function(){
+    $('.app').on('click', '.cancel--message', function(){
+        $('.cancel--message').hide();
+        $('.open--menu').show();
+        $('.add-message-view').addClass('hide');
+        $('button.add--message').show();
+        $('.lock-location').hide();
+        $('.activities--container').removeClass('hide');
+        
+        displayActivities();
+        
+        for(var i = 0; i < user.waitingMessages.length; i++) {
+            if(user.waitingMessages[i].detected) {
+                $('.activities--list').prepend('<li class="message--detected" id="' + user.waitingMessages[i].id + '">Un message a été détecté dans ta zone !</li>');
+                $('.activities--list #' + user.waitingMessages[i].id).append('<p class="activity-date">À l\'instant</p>');
+                if(user.activities.length != 0) {
+                    $('.activities--list').css('border-left', '2px solid #47ACFF');
+                }
+            }
+        }
+        $('#map').css('height', '250px');
+    });
+    
+    $('.app').on('click', '.skip-step', function(){
         selectView('home');
     });
     
-    $('.app').on('click', '#inscription-screen .back--home', function(){
-        selectView('connexion');
+    $('.app').on('click', '.my-friends', function(){
+        $('.myfriends-list li').remove();
+        for (var i = 0; i < user.friendList.length; i++) {
+            var friendsListElement = '<li id="' + user.friendList[i].id + '">' + user.friendList[i].username + '</li>';
+            $('.myfriends-list').append(friendsListElement);
+        }
     });
     
-    $('.app').on('click', '.cancel--message', function(){
-        $('.cancel--message').addClass('open--menu').removeClass('cancel--message');
-        $('.add-message-view').addClass('hide');
-        $('button.add--message').show();
-        $('.activities--container').removeClass('hide');
-        $('#map').css('height', '300px');
-        google.maps.event.trigger(map, 'resize');
+    function displayPublicMessages(publicMessages) {
+        $('.public-messages li').remove();
+        var messagePosition;
+        for(var i = 0; i < publicMessages.length; i++) {
+            messagePosition = {
+                lat: publicMessages[i].message_lat,
+                lng : publicMessages[i].message_lng
+            };
+            publicMessages[i].distance = calculDistance(currentPosition, messagePosition);
+            
+            var sqlActivityTime = publicMessages[i].message_date.split(/[- :]/);
+            var publicmessageTime = new Date(sqlActivityTime[0], sqlActivityTime[1]-1, sqlActivityTime[2], sqlActivityTime[3], sqlActivityTime[4], sqlActivityTime[5]);
+            var currentTime = new Date;
+            
+            publicmessageTime = publicmessageTime.getTime();
+            currentTime = currentTime.getTime();
+            var textMessageTime = calculTimePassed(publicmessageTime, currentTime);
+            publicMessages[i].timePassed = textMessageTime;
+        }
+        publicMessages.sort(function (a, b) {
+            if (a.distance > b.distance)
+              return 1;
+            if (a.distance < b.distance)
+              return -1;
+            // a doit être égale à b
+            return 0;
+        });
+        
+        for(var i = 0; i < publicMessages.length; i++) {
+            if(publicMessages[i].distance < 0.5 && publicMessages[i].from_user_id != user.userId) {
+                var publicMessageDistance = Math.round(publicMessages[i].distance * 100);
+                if (publicMessages[i].distance * 100 < 1) {
+                    publicMessageDistance = '< 1';
+                }
+                var publicMessageData = '<p class="publicmessage-tag">' + publicMessages[i].tag + '</p><p class="publicmessage-time">' + publicMessages[i].timePassed + '</p><p class="publicmessage-content">' + publicMessages[i].message_content + '</p><p class="publicmessage-sender">Par ' + publicMessages[i].from_user_username.username + '</p><button class="like-publicmessage">J\'aime</button><p class="publicmessage-distance">' + publicMessageDistance + ' m</p>';
+                $('.public-messages').append('<li id="' + publicMessages[i].id + '">' + publicMessageData + '</li>');
+            }
+        }
+
+    }
+    
+    $('.app').on('click', '.open--public', function(){
+        var publicMessages = [];
+        
+        $.ajax({
+            type: 'POST',
+            data: '',
+            url: 'http://oliviapaquay.be/dropit/loadpublicmessages.php',
+            success: function(data) {
+                publicMessages = JSON.parse(data);
+                displayPublicMessages(publicMessages);
+            },
+            error: function(){
+                alert('There was an error');
+            }
+        });
     });
+    
+    $('.app').on('click', '.lock-location', function(){
+        $('.lock-location').toggleClass('locked');
+        if($('.lock-location').hasClass('locked')) {
+            lockedPosition = currentPosition;
+        } else if (!($('.lock-location').hasClass('locked'))){
+            lockedPosition = '';
+        }
+    });
+    
+    var activitySwiped;
+    $('.app').on('swipeleft', '.activities--list li', function(){
+        if(activitySwiped != $(this).attr('id')) {
+            activitySwiped = $(this).attr('id');
+            $('button.delete-activity').css('right', '-120px');
+            $('#' + activitySwiped + ' button.delete-activity').animate({right: '-20px'}, 500, function() {
+                    
+            });
+        }
+    });
+    
+    $('.app').on('swiperight', '.activities--list li', function(){
+        activitySwiped = $(this).attr('id');
+        $('#' + activitySwiped + ' button.delete-activity').animate({right: '-120px'}, 500, function() {
+            activitySwiped = '';
+        });
+    });
+    
+    var keyboardVisible = false;
+    $('.app').on('click', '#connexion-screen input[type=text], #connexion-screen input[type=password]', function() {
+        if(keyboardVisible == false) {
+            $('#connexion-screen .logo').animate({
+                height: '50px'
+            }, 500, function() {
+            
+            });
+        }
+        keyboardVisible = true;
+    });
+    
+    $('.app').on('click', '#connexion-screen', function(event){
+        if(!($(event.target).is('input'))){
+            if(keyboardVisible == true){
+                $('#connexion-screen .logo').animate({
+                    height: '134px'
+                }, 500, function() {
+                    keyboardVisible = false;
+                });
+            }
+        }
+    });
+    
+    $(document).on("pageshow", '#home-screen', function(){
+        $('.views').not('#home-screen').hide();
+        displayActivities();
+        for(var i = 0; i < user.waitingMessages.length; i++) {
+            if(user.waitingMessages[i].detected) {
+                $('.activities--list').prepend('<li class="message--detected" id="' + user.waitingMessages[i].id + '">Un message a été détecté dans ta zone !</li>');
+                $('.activities--list #' + user.waitingMessages[i].id).append('<p class="activity-date">À l\'instant</p>');
+                if(user.activities.length != 0) {
+                    $('.activities--list').css('border-left', '2px solid #47ACFF');
+                }
+            }
+        }
+    });
+    
+    $(document).on("pagebeforeshow", function(event){
+        $(event.target).show();
+    });
+    
+    $(document).on("pagehide", function(event){
+        $(event.target).hide();
+    });
+    
+    
 });
 
 

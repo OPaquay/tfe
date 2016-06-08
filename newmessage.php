@@ -27,6 +27,8 @@
 
     if($message_tag == '') {
         $errors['tag'] = 'Veuillez entrer un tag pour votre message';
+    } else if($message_tag[0] != '#'){
+        $message_tag = '#'.$message_tag;
     }
 
     if($message_content == ''){
@@ -45,13 +47,36 @@
         $preparedStatement->bindValue('public_message', $message_public);
         $preparedStatement->execute();            
         $message_id = $connexion->lastInsertId();
+        
+        $sql = 'INSERT INTO activities(owner_id, type, date) 
+        VALUES(:owner_id, :type, now())';
+        $preparedStatement = $connexion->prepare($sql);
+        $preparedStatement->bindValue('owner_id', $user_id);
+        $preparedStatement->bindValue('type', 'messagedropped');
+        $preparedStatement->execute();            
+        $activity_id = $connexion->lastInsertId();
 
         foreach($message_recipient as $recipient) {
             $recipient_id = intval($recipient);
+            
+            $sql = 'SELECT * FROM users WHERE id = :recipient_id';
+            $preparedStatement = $connexion->prepare($sql);
+            $preparedStatement->bindValue('recipient_id', $recipient_id);
+            $preparedStatement->execute();
+            $recipient_profile = $preparedStatement->fetch();
+            $recipient_username = $recipient_profile['username'];
+            
             $sql = 'INSERT INTO messages_recipient(message_id, to_user_id) VALUES(:message_id, :to_user_id)';
             $preparedStatement = $connexion->prepare($sql);
             $preparedStatement->bindValue('message_id', $message_id);
             $preparedStatement->bindValue('to_user_id', $recipient_id);
+            $preparedStatement->execute();
+            
+            $sql = 'INSERT INTO activities_participants(activity_id, participant_id, participant_username) VALUES(:activity_id, :participant_id, :participant_username)';
+            $preparedStatement = $connexion->prepare($sql);
+            $preparedStatement->bindValue('activity_id', $activity_id);
+            $preparedStatement->bindValue('participant_id', $recipient_id);
+            $preparedStatement->bindValue('participant_username', $recipient_username);
             $preparedStatement->execute();
         }
         
