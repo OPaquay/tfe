@@ -1,33 +1,14 @@
+//Get the user saved in localstorage
 var user_save = localStorage.getItem("user");
 var user = JSON.parse(user_save);
 var userProfilePictSrc = '';
 
+//Initialize map var
 var userMarker = '';
 var messageMarker = [];
 var messagesMarker = [];
 var mapIsLoaded = false;
 var map;
-    /*function initMap() {
-         map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: -34.397, lng: 150.644},
-            zoom: 15,
-            streetViewControl: false,
-            zoomControl: false,
-            mapTypeControl: false
-        });
-
-        marker = new google.maps.Marker({
-            position: {lat: -34.397, lng: 150.644},
-            icon: {url: 'img/point.png', anchor: new google.maps.Point(11, 11)},
-            map: map,
-            zIndex : 999
-        });
-
-        map.addListener('center_changed', function() {
-            map.panTo(marker.getPosition());
-        });
-
-    }*/
 
 $(document).ready(function(){
 
@@ -53,6 +34,7 @@ $(document).ready(function(){
             pictureSource = navigator.camera.PictureSourceType;
             destinationType = navigator.camera.DestinationType;
             
+            //Map config
             map = plugin.google.maps.Map.getMap(document.getElementById('map'), {
                 'camera': {
                     'latLng': {lat: -34.397, lng: 150.644},
@@ -87,6 +69,7 @@ $(document).ready(function(){
     
     };
     
+    //Add marker on Map ready
     function onMapReady() {
         if(userMarker != ''){
             userMarker.remove();
@@ -104,6 +87,7 @@ $(document).ready(function(){
     
     app.initialize();
     
+    //Initialize location var
     var latlng;
     var currentPosition = {
         lat : '', 
@@ -112,15 +96,18 @@ $(document).ready(function(){
     };
     var lockedPosition = '';
     
+    //Convert Radians
     function convertRadians(e){
         return (e* (Math.PI/180));
     }
     
+    //Round Number
     function round(number,X) {
 	   X = (!X ? 3 : X);
 	   return Math.round(number*Math.pow(10,X))/Math.pow(10,X);
     }
     
+    //Compute distance between user and messages
     function calculDistance(userPosition, messagePosition) {
         var pointA = {
             lat : userPosition.lat,
@@ -141,6 +128,7 @@ $(document).ready(function(){
         return distance;
     }
     
+    //Add marker for detected messages
     function addMarker() {
         if(messageMarker != ''){
             for(var j=0; i<messageMarker.length; i++) {
@@ -166,6 +154,7 @@ $(document).ready(function(){
         }
     }
     
+    //Display that a message has been detected
     function messageDetected(message) {
         message.detected = true;
         var messageDetectedPosition = {
@@ -182,6 +171,7 @@ $(document).ready(function(){
         
     }
     
+    //Check if a message is in the area
     function checkWaitingMessages(userPosition) {
         
         if (user.waitingMessages.length != 0) {
@@ -212,12 +202,12 @@ $(document).ready(function(){
         }
     }
     
+    //Execute after getting user position
     function getPosition(position) {
         if(mapIsLoaded == true) {
             latlng = new plugin.google.maps.LatLng(position.coords.latitude, position.coords.longitude);
             userMarker.setPosition(latlng);
-        
-            //Centrer la map sur latlng
+      
             map.setCenter(latlng);
         }
         currentPosition.lat = position.coords.latitude; 
@@ -245,14 +235,16 @@ $(document).ready(function(){
         }
     }
     
+    //Watch user position
     var watchPosition = function(){
         if(navigator.geolocation) {
             survId = navigator.geolocation.watchPosition(getPosition, erreurPosition, {enableHighAccuracy: true});
         } else {
             alert("Ce navigateur ne supporte pas la géolocalisation");
         }
-    }
+    };
     
+    //Display errors
     var showErrors = function(errors, screen){
         $('p.error').hide();
         for (var error in errors){
@@ -261,8 +253,9 @@ $(document).ready(function(){
             }
         }
         console.log(errors);
-    }
+    };
     
+    //Load user activities
     var loadActivities = function(userId) {
         $.ajax({
             type: 'POST',
@@ -281,9 +274,10 @@ $(document).ready(function(){
         });
     };
     
+    //Load activities participants
     var loadActivitiesParticipants = function() {
         for (var i = 0; i < user.activities.length; i++) {
-            if (user.activities[i].type == "friendrequest" || user.activities[i].type == "friendrequestaccepted" || user.activities[i].type == "messageFounded" || user.activities[i].type == "messageFoundedBy" || user.activities[i].type == "friendrequestacceptedby" || user.activities[i].type == "messagedropped") {
+            if (user.activities[i].type === "friendrequest" || user.activities[i].type === "friendrequestaccepted" || user.activities[i].type === "messageFounded" || user.activities[i].type === "messageFoundedBy" || user.activities[i].type === "friendrequestacceptedby" || user.activities[i].type === "messagedropped") {
                 $.ajax({
                     type: 'POST',
                     async: false,
@@ -305,6 +299,7 @@ $(document).ready(function(){
         
     };
     
+    //Load user's friendlist
     var loadFriends = function(userId) {
         $.ajax({
             type: 'POST',
@@ -314,7 +309,7 @@ $(document).ready(function(){
                 var friendList = JSON.parse(data);
                 user.friendList = [];
                 for(var i = 0; i < friendList.length; i++) {
-                    if(friendList[i].id != userId) {
+                    if(friendList[i].id !== userId) {
                         user.friendList.push(friendList[i]);
                     }
                 };
@@ -325,6 +320,7 @@ $(document).ready(function(){
         });
     };
     
+    //Load messages sended by user
     var loadSendedMessages = function(){
         $.ajax({
             type: 'POST',
@@ -341,8 +337,9 @@ $(document).ready(function(){
                 alert('There was an error');
             }
         });
-    }
+    };
     
+    //Compute the time passed from initial time until now
     function calculTimePassed(initialTime, now){
             var timePassed = now - initialTime;
             var secondPassed = Math.floor((timePassed / 1000));
@@ -382,7 +379,7 @@ $(document).ready(function(){
                 }
             } else if(daysPassed < 365) {
                 if(monthsPassed == 1) {
-                    textActivityTime = 'Il y\'à 1 an';
+                    textActivityTime = 'Il y\'à 1 mois';
                 } else {
                     textActivityTime = 'Il y\'à ' + monthsPassed + ' mois';
                 }
@@ -397,6 +394,7 @@ $(document).ready(function(){
             return textActivityTime;
     }
     
+    //Display activity list
     var displayActivities = function() {
         if (user.activities.length > 1){
             $('.activities--list').css('border-left', '2px solid #47ACFF');
@@ -488,6 +486,7 @@ $(document).ready(function(){
         }
     };
     
+    //Delete activity
     $('.app').on('click', '.delete-activity', function(){
         var activityId = $(this).parent().attr('id');
         $.ajax({
@@ -511,6 +510,7 @@ $(document).ready(function(){
         }
     });
     
+    //Start ajax request when others are complete
     $(document).ajaxComplete(function(event,request, settings) {
         if(settings.url == "http://oliviapaquay.be/dropit/loadfriends.php") {
             loadActivities(user.userId);
@@ -519,6 +519,7 @@ $(document).ready(function(){
         }
     });
     
+    //Save and process user data on ajax stop
     $(document).ajaxStop(function(){
         user_save = JSON.stringify(user);
         localStorage.setItem("user", user_save);
@@ -553,9 +554,6 @@ $(document).ready(function(){
             $('header').show();
             $('button.add--message').show();
             $('.open--profile').css('background-image', 'url("http://oliviapaquay.be/dropit/upload/' + user.profilePictSrc + '")');
-            /*if(!(typeof google === 'object' && typeof google.maps === 'object')) {
-                $.getScript('https://maps.googleapis.com/maps/api/js?key=AIzaSyBsca-E6pREkZVSqmb8eHLzCMom3r0lKhA&libraries=geometry&callback=initMap');
-            }*/
             loadFriends(user.userId);
             loadWaitingMessages(user.userId);
             $('#home-screen').css('height', (windowHeight - 54) + 'px');
@@ -573,6 +571,7 @@ $(document).ready(function(){
         }
     }
     
+    //Load waiting messages
     var loadWaitingMessages = function(userId) {
         $.ajax({
             type: 'POST',
@@ -592,6 +591,7 @@ $(document).ready(function(){
         });
     }
     
+    //Connect the user if a user is saved and connected
     if(user != null && user.connected == "connected") {
         window.location.hash = 'home-screen';
         $.mobile.initializePage();
@@ -604,11 +604,6 @@ $(document).ready(function(){
         $.mobile.initializePage();
     }
     
-    /*$('.inscription--button').click(function(){
-        selectView('inscription');
-        $('header').hide();
-    });*/
-    
     var imageURI = '';
     
     function clearCache() {
@@ -616,7 +611,7 @@ $(document).ready(function(){
     }
     
     var retries = 0;
-    
+    //Save profile pict on server
     function transferPhoto(URI){
         var win = function (r) {
             clearCache();
@@ -651,7 +646,7 @@ $(document).ready(function(){
         ft.upload(URI, encodeURI("http://oliviapaquay.be/dropit/upload.php"), win, fail, options);
     }
     
-    
+    //Process inscription
     $('#inscription').submit(function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -700,6 +695,7 @@ $(document).ready(function(){
         return false;
     })
     
+    //Process connection
     $('#connexion').submit(function(e){
         e.preventDefault();
         e.stopPropagation();
@@ -744,6 +740,7 @@ $(document).ready(function(){
         });
     });
     
+    //Log out
     $('.app').on('click', '.log-out', function() {
         user.connected = "not connected";
         var user_save = JSON.stringify(user);
@@ -770,6 +767,7 @@ $(document).ready(function(){
         
     });
     
+    //Add profile data
     $('#profile').submit(function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -798,6 +796,7 @@ $(document).ready(function(){
         });
     });
     
+    //Get phone contact and check if they are in database
     function checkContacts() {
         $('.contact-result li').remove();
         var userContacts = [];
@@ -980,9 +979,6 @@ $(document).ready(function(){
         
         var brng = (((Math.atan2(dLng, dPhi)) * (180/Math.PI)) + 360.0) % 360.0;
         
-        /*var y = Math.sin(destinationLng - originLng) * Math.cos(destinationLat);
-        var x = Math.cos(origin.lat) * Math.sin(destination.lat) - Math.sin(origin.lat) * Math.cos(destinationLat) * Math.cos(destinationLng - originLng);
-        var brng = Math.atan2(y, x) * (180/pi);*/
         return brng;
     }
     
